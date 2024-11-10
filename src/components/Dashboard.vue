@@ -1,163 +1,227 @@
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { onMounted } from 'vue';
+
+const router = useRouter();
+
+// Reactive state to check login status
+const isLoggedIn = ref(false);
+
+// Check for a valid token on component mount to set initial login status
+onMounted(() => {
+  const token = localStorage.getItem('token');
+  isLoggedIn.value = !!token;
+  if (!isLoggedIn.value) {
+    router.push('/login'); // Redirect to login if not authenticated
+  }
+});
+
+// Logout function to reset login status and redirect to login page
+const logout = () => {
+  isLoggedIn.value = false;
+  localStorage.removeItem('token'); // Remove token from storage
+  router.push('/login');
+};
+
+// Quantity controls for product customization
+const quantity = ref(1);
+
+const increaseQuantity = () => {
+  quantity.value++;
+};
+
+const decreaseQuantity = () => {
+  if (quantity.value > 1) {
+    quantity.value--;
+  }
+};
+</script>
+
 <template>
-  <div class="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-    <div class="sm:mx-auto sm:w-full sm:max-w-md">
-      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-        Sign in to your account
-      </h2>
-      <p class="mt-2 text-center text-sm text-gray-600 max-w">
-        Or
-        <a href="#" class="font-medium text-blue-600 hover:text-blue-500">
-          create an account
-        </a>
-      </p>
-    </div>
+  <div id="app" class="min-h-screen flex flex-col bg-gray-100">
+    <!-- Header -->
+    <header class="bg-gray-500 text-white p-4 flex justify-between items-center shadow-md">
+      <h1 class="text-2xl font-bold">3D Sneaker Store</h1>
+      <nav>
+        <ul class="flex space-x-6">
+          <li><router-link to="/orders" class="hover:underline">Orders</router-link></li>
+          <li><router-link to="/change-password" class="hover:underline">Change Password</router-link></li>
+          <li v-if="isLoggedIn">
+            <button @click="logout" class="hover:underline">Logout</button>
+          </li>
+        </ul>
+      </nav>
+    </header>
 
-    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-      <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-        <form @submit.prevent="login" class="space-y-6">
-          <div>
-            <label for="username" class="block text-sm font-medium text-gray-700">
-              Username
-            </label>
-            <div class="mt-1">
-              <input
-                id="username"
-                name="username"
-                type="text"
-                v-model="username"
-                required
-                class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Enter your username"
-              />
+    <!-- Main Layout -->
+    <div class="flex flex-grow">
+
+      <!-- Main Content -->
+      <main class="flex-grow p-4 bg-white shadow-inner">
+        <div class="flex flex-wrap lg:flex-nowrap">
+
+          <!-- Product Image / 3D Configurator -->
+          <div class="flex-none w-full lg:w-3/4 mb-4 relative z-10">
+            <div class="w-full h-96 bg-gray-200">
+              <!-- 3D configurator or larger product display space can be inserted here -->
+              <img src="#" alt="Product" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
             </div>
           </div>
 
-          <div>
-            <label for="password" class="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <div class="mt-1">
-              <input
-                id="password"
-                name="password"
-                type="password"
-                v-model="password"
-                required
-                class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Enter your password"
-              />
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between">
-            <div class="flex items-center">
-              <input
-                id="remember_me"
-                name="remember_me"
-                type="checkbox"
-                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-              />
-              <label for="remember_me" class="ml-2 block text-sm text-gray-900">
-                Remember me
-              </label>
+          <!-- Product Details Form -->
+          <form class="flex-auto pl-6">
+            <div class="relative flex flex-wrap items-baseline pb-6">
+              <h1 class="relative w-full flex-none mb-2 text-2xl font-semibold text-gray-800">
+                Create your own Sneaker
+              </h1>
+              <div class="relative text-lg text-gray-500">
+                €89.00
+              </div>
+              <div class="relative uppercase text-gray-400 ml-3">
+                In stock
+              </div>
             </div>
 
-            <div class="text-sm">
-              <a href="#" class="font-medium text-blue-600 hover:text-blue-500">
-                Forgot your password?
-              </a>
+            <!-- Size Options -->
+            <div class="flex flex-wrap my-4">
+              <div class="flex flex-wrap text-sm font-medium">
+                <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
+                  <input class="sr-only peer" name="size" type="radio" value="36" checked />
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
+                    36
+                  </div>
+                </label>
+                <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
+                  <input class="sr-only peer" name="size" type="radio" value="37" />
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
+                    37
+                  </div>
+                </label>
+                <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
+                  <input class="sr-only peer" name="size" type="radio" value="38" />
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
+                    38
+                  </div>
+                </label>
+                <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
+                  <input class="sr-only peer" name="size" type="radio" value="39" />
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
+                    39
+                  </div>
+                </label>
+                <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
+                  <input class="sr-only peer" name="size" type="radio" value="40" />
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
+                    40
+                  </div>
+                </label>
+                <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
+                  <input class="sr-only peer" name="size" type="radio" value="41" />
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
+                    41
+                  </div>
+                </label>
+                <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
+                  <input class="sr-only peer" name="size" type="radio" value="42" />
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
+                    42
+                  </div>
+                </label>
+                <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
+                  <input class="sr-only peer" name="size" type="radio" value="43" />
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
+                    43
+                  </div>
+                </label>
+                <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
+                  <input class="sr-only peer" name="size" type="radio" value="44" />
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
+                    44
+                  </div>
+                </label>
+                <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
+                  <input class="sr-only peer" name="size" type="radio" value="45" />
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
+                    45
+                  </div>
+                </label>
+                <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
+                  <input class="sr-only peer" name="size" type="radio" value="46" />
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
+                    46
+                  </div>
+                </label>
+                <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
+                  <input class="sr-only peer" name="size" type="radio" value="47" />
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
+                    47
+                  </div>
+                </label>
+              </div>
             </div>
-          </div>
 
-          <div>
-            <button
-              type="submit"
-              class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Sign in
-            </button>
-          </div>
-        </form>
-        <p v-if="error" class="mt-4 text-red-500 text-center">{{ error }}</p>
-        <div class="mt-6">
-          <div class="relative">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-gray-300"></div>
+            <!-- Color Options -->
+            <div class="flex items-baseline my-6">
+              <div class="space-x-3 flex text-sm font-medium">
+                <label class="peer">
+                  <input class="sr-only peer" name="color" type="radio" value="black" checked />
+                  <div class="relative w-10 h-10 flex items-center justify-center bg-black text-white peer-checked:ring-4 peer-checked:ring-gray-400 rounded-full">
+                  </div>
+                </label>
+                <label class="peer">
+                  <input class="sr-only peer" name="color" type="radio" value="blue" />
+                  <div class="relative w-10 h-10 flex items-center justify-center bg-blue-500 text-white peer-checked:ring-4 peer-checked:ring-gray-400 rounded-full">
+                  </div>
+                </label>
+                <label class="peer">
+                  <input class="sr-only peer" name="color" type="radio" value="green" />
+                  <div class="relative w-10 h-10 flex items-center justify-center bg-green-500 text-white peer-checked:ring-4 peer-checked:ring-gray-400 rounded-full">
+                  </div>
+                </label>
+                <label class="peer">
+                  <input class="sr-only peer" name="color" type="radio" value="red" />
+                  <div class="relative w-10 h-10 flex items-center justify-center bg-red-500 text-white peer-checked:ring-4 peer-checked:ring-gray-400 rounded-full">
+                  </div>
+                </label>
+                <label class="peer">
+                  <input class="sr-only peer" name="color" type="radio" value="white" />
+                  <div class="relative w-10 h-10 flex items-center justify-center bg-white text-black peer-checked:ring-4 peer-checked:ring-gray-400 rounded-full">
+                  </div>
+                </label>
+              </div>
             </div>
-            <div class="relative flex justify-center text-sm">
-              <span class="px-2 bg-white text-gray-500">
-                Or continue with
-              </span>
-            </div>
-          </div>
 
-          <div class="mt-6 grid grid-cols-3 gap-3">
-            <div>
-              <a
-                href="#"
-                class="w-full flex items-center justify-center px-8 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                <img class="h-5 w-5" src="https://www.svgrepo.com/show/512120/facebook-176.svg" alt="" />
-              </a>
+            <!-- Quantity Selector -->
+            <div class="my-4">
+              <label class="block text-sm font-medium text-gray-800 mb-2">Quantity</label>
+              <div class="flex items-center space-x-2">
+                <button type="button" @click="decreaseQuantity" class="text-gray-500 border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-200">-</button>
+                <input type="number" v-model="quantity" class="w-12 text-center border border-gray-300 py-1 rounded-md" min="1" />
+                <button type="button" @click="increaseQuantity" class="text-gray-500 border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-200">+</button>
+              </div>
             </div>
-            <div>
-              <a
-                href="#"
-                class="w-full flex items-center justify-center px-8 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                <img class="h-5 w-5" src="https://www.svgrepo.com/show/513008/twitter-154.svg" alt="" />
-              </a>
+
+            <!-- Add to Cart Button -->
+            <div class="my-4">
+              <button class="w-full py-2 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-700">
+                Add to Cart
+              </button>
             </div>
-            <div>
-              <a
-                href="#"
-                class="w-full flex items-center justify-center px-8 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                <img class="h-6 w-6" src="https://www.svgrepo.com/show/506498/google.svg" alt="" />
-              </a>
-            </div>
-          </div>
+          </form>
         </div>
-      </div>
+      </main>
+
     </div>
   </div>
 </template>
 
-<script>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import axios from 'axios'
-
-export default {
-  setup() {
-    const username = ref('')
-    const password = ref('')
-    const error = ref('')
-    const router = useRouter()
-
-    const login = async () => {
-      try {
-        const response = await axios.post('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/login', {
-          username: username.value,
-          password: password.value,
-        });
-        localStorage.setItem('token', response.data.token);
-        router.push('/dashboard');
-      } catch (err) {
-        error.value = "Login failed. Please try again.";
-      }
-    }
-
-    return {
-      username,
-      password,
-      error,
-      login
-    }
-  }
-}
-</script>
-
 <style scoped>
-/* Voeg TailwindCSS klassen toe voor styling */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
 </style>
