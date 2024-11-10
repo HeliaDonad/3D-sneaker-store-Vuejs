@@ -5,29 +5,33 @@ import axios from 'axios'
 
 export default {
   setup() {
+    const name = ref('')
     const email = ref('')
     const password = ref('')
     const error = ref('')
     const router = useRouter()
 
-    const login = async () => {
+    const register = async () => {
       try {
-        const response = await axios.post('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/login', {
+        const response = await axios.post('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/register', {
+          name: name.value,
           email: email.value,
           password: password.value,
         });
-        localStorage.setItem('token', response.data.data.token);
-        router.push('/dashboard'); // Redirect to App.vue after successful login
+        console.log(response.data); // Debugging: Log the response data
+        router.push('/login'); // Redirect to login page after successful registration
       } catch (err) {
-        error.value = err.response?.data?.message || "Login failed. Please try again.";
+        console.error(err.response); // Debugging: Log the error response
+        error.value = err.response?.data?.message || "Registration failed. Please try again.";
       }
     }
 
     return {
+      name,
       email,
       password,
       error,
-      login
+      register
     }
   }
 }
@@ -37,24 +41,31 @@ export default {
   <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 px-6">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 class="mt-6 text-center text-3xl leading-9 font-extrabold text-gray-900">
-            Sign in to your account
+            Create a new account
         </h2>
         <p class="mt-2 text-center text-sm leading-5 text-blue-500 max-w">
             Or
-            <router-link to="/register"
+            <router-link to="/login"
                 class="font-medium text-blue-500 hover:text-blue-500 focus:outline-none focus:underline transition ease-in-out duration-150">
-                create a new account
+                I already have an account
             </router-link>
         </p>
     </div>
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            <form @submit.prevent="login">
+            <form @submit.prevent="register">
                 <div>
-                    <label for="email" class="block text-sm font-medium leading-5 text-gray-700">Email</label>
+                    <label for="name" class="block text-sm font-medium leading-5 text-gray-700">Name</label>
                     <div class="mt-1 relative rounded-md shadow-sm">
-                        <input id="email" name="email" placeholder="Email" type="email" required v-model="email" class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 transition duration-150 ease-in-out sm:text-sm sm:leading-5">
+                        <input id="name" name="name" placeholder="Your name" type="text" required v-model="name" class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 transition duration-150 ease-in-out sm:text-sm sm:leading-5">
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <label for="email" class="block text-sm font-medium leading-5 text-gray-700">Email address</label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <input id="email" name="email" placeholder="user@example.com" type="email" required v-model="email" class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 transition duration-150 ease-in-out sm:text-sm sm:leading-5">
                     </div>
                 </div>
 
@@ -82,7 +93,7 @@ export default {
                 <div class="mt-6">
                     <span class="block w-full rounded-md shadow-sm">
                         <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-500 hover:bg-blue-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700 transition duration-150 ease-in-out">
-                            Sign in
+                            Sign up
                         </button>
                     </span>
                 </div>
