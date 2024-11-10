@@ -28,15 +28,15 @@ const decreaseQuantity = () => {
     <!-- Header -->
     <header class="bg-gray-500 text-white p-4 flex justify-between items-center shadow-md">
       <h1 class="text-2xl font-bold">3D Sneaker Store</h1>
-      <!--<nav>
+      <nav>
         <ul class="flex space-x-6">
           <li><router-link to="/orders" class="hover:underline">Orders</router-link></li>
-          <li><router-link to="/change-password" class="hover:underline">Change Password</router-link></li>
+          <!--<li><router-link to="/change-password" class="hover:underline">Change Password</router-link></li>-->
           <li v-if="isLoggedIn">
             <button @click="logout" class="hover:underline">Logout</button>
           </li>
         </ul>
-      </nav>-->
+      </nav>
     </header>
 
     <!-- Main Layout -->
