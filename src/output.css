@@ -1134,7 +1134,7 @@ video {
   background-color: rgb(20 184 166 / var(--tw-bg-opacity));
 }
 
-.hover\:bg-teal-600:hover {
+.hover\:bg-gray-600:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(13 148 136 / var(--tw-bg-opacity));
 }

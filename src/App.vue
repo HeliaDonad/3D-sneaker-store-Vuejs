@@ -48,7 +48,7 @@ const decreaseQuantity = () => {
 
           <!-- Product Image / 3D Configurator -->
           <div class="flex-none w-full lg:w-3/4 mb-4 relative z-10">
-            <div class="w-full h-full bg-gray-200 shadow-lg overflow-hidden">
+            <div class="w-full h-96 bg-gray-200">
               <!-- 3D configurator or larger product display space can be inserted here -->
               <img src="#" alt="Product" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
             </div>
@@ -179,17 +179,17 @@ const decreaseQuantity = () => {
 
             <!-- Quantity Selector -->
             <div class="my-4">
-              <label class="block text-lg font-medium text-gray-800">Quantity</label>
+              <label class="block text-sm font-medium text-gray-800 mb-2">Quantity</label>
               <div class="flex items-center space-x-2">
                 <button type="button" @click="decreaseQuantity" class="text-gray-500 border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-200">-</button>
-                <input type="number" v-model="quantity" class="w-16 text-center border border-gray-300 py-2 rounded-md" min="1" />
+                <input type="number" v-model="quantity" class="w-12 text-center border border-gray-300 py-1 rounded-md" min="1" />
                 <button type="button" @click="increaseQuantity" class="text-gray-500 border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-200">+</button>
               </div>
             </div>
 
             <!-- Add to Cart Button -->
             <div class="my-4">
-              <button class="w-full py-2 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-400">
+              <button class="w-full py-2 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-700">
                 Add to Cart
               </button>
             </div>
@@ -202,7 +202,14 @@ const decreaseQuantity = () => {
 </template>
 
 <style scoped>
-@media (max-width: 640px) {
-
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 </style>
