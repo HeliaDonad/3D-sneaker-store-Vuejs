@@ -1,17 +1,19 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import App from '../App.vue'
-import Orders from '../components/Orders.vue'
-/*import ChangePassword from '../views/ChangePassword.vue'*/
+import { createRouter, createWebHashHistory } from 'vue-router';
+import Login from '../components/Login.vue';
+import Orders from '../components/Orders.vue';
+import Order from '../components/Order.vue';
+import PasswordChange from '../components/PasswordChange.vue';
 
 const routes = [
-  { path: '/', component: App },
-  { path: '/orders', component: Orders },
-  /*{ path: '/change-password', component: ChangePassword },*/
-]
+  { path: '/', component: Login },
+  { path: '/dashboard', component: Orders },
+  { path: '/orders/:id', component: Order },
+  { path: '/change-password', component: PasswordChange },
+];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes,
-})
+});
 
-export default router
+export default router;

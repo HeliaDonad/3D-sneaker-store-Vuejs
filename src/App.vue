@@ -1,26 +1,41 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { onMounted } from 'vue';
 
-const router = useRouter()
-const isLoggedIn = ref(true) // Voor demonstratiedoeleinden, stel in op true
+const router = useRouter();
 
+// Reactive state to check login status
+const isLoggedIn = ref(false);
+
+// Check for a valid token on component mount to set initial login status
+onMounted(() => {
+  const token = localStorage.getItem('token');
+  isLoggedIn.value = !!token;
+  if (!isLoggedIn.value) {
+    router.push('/login'); // Redirect to login if not authenticated
+  }
+});
+
+// Logout function to reset login status and redirect to login page
 const logout = () => {
-  isLoggedIn.value = false
-  router.push('/login')
-}
+  isLoggedIn.value = false;
+  localStorage.removeItem('token'); // Remove token from storage
+  router.push('/login');
+};
 
-const quantity = ref(1)
+// Quantity controls for product customization
+const quantity = ref(1);
 
 const increaseQuantity = () => {
-  quantity.value++
-}
+  quantity.value++;
+};
 
 const decreaseQuantity = () => {
   if (quantity.value > 1) {
-    quantity.value--
+    quantity.value--;
   }
-}
+};
 </script>
 
 <template>
@@ -31,7 +46,7 @@ const decreaseQuantity = () => {
       <nav>
         <ul class="flex space-x-6">
           <li><router-link to="/orders" class="hover:underline">Orders</router-link></li>
-          <!--<li><router-link to="/change-password" class="hover:underline">Change Password</router-link></li>-->
+          <li><router-link to="/change-password" class="hover:underline">Change Password</router-link></li>
           <li v-if="isLoggedIn">
             <button @click="logout" class="hover:underline">Logout</button>
           </li>
@@ -208,8 +223,5 @@ input[type="number"]::-webkit-inner-spin-button {
   margin: 0;
 }
 
-input[type="number"] {
-  -moz-appearance: textfield;
-}
 
 </style>

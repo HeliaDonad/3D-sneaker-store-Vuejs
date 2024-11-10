@@ -1,6 +1,6 @@
 <template>
     <div class="orders">
-      <h1>Orders</h1>
+      <h1>Orders Dashboard</h1>
       <p>Total Orders: {{ orders.length }}</p>
       <ul>
         <li v-for="order in orders" :key="order._id">
@@ -15,17 +15,14 @@
   import axios from 'axios';
   
   export default {
-    name: 'Orders',
     setup() {
       const orders = ref([]);
   
       const fetchOrders = async () => {
-        try {
-          const response = await axios.get('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders');
-          orders.value = response.data.data;
-        } catch (error) {
-          console.error("Error fetching orders:", error);
-        }
+        const response = await axios.get('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        });
+        orders.value = response.data.data;
       };
   
       onMounted(() => {
@@ -33,9 +30,9 @@
       });
   
       return { orders };
-    }
-  }
-  </script>
+    },
+  };
+  </script>  
   
   <style scoped>
   .orders { padding: 20px; }
