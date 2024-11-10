@@ -21,8 +21,19 @@ export default {
         console.log(response.data); // Debugging: Log the response data
         router.push('/login'); // Redirect to login page after successful registration
       } catch (err) {
-        console.error(err.response); // Debugging: Log the error response
-        error.value = err.response?.data?.message || "Registration failed. Please try again.";
+        console.error('Error response:', err.response); // Debugging: Log the error response
+        if (err.response) {
+          // Server responded with a status other than 200 range
+          error.value = err.response.data.message || "Registration failed. Please try again.";
+        } else if (err.request) {
+          // Request was made but no response was received
+          console.error('Request error:', err.request);
+          error.value = "No response from server. Please try again later.";
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.error('Error', err.message);
+          error.value = "An error occurred. Please try again.";
+        }
       }
     }
 
