@@ -9,13 +9,25 @@ const logout = () => {
   isLoggedIn.value = false
   router.push('/login')
 }
+
+const quantity = ref(1)
+
+const increaseQuantity = () => {
+  quantity.value++
+}
+
+const decreaseQuantity = () => {
+  if (quantity.value > 1) {
+    quantity.value--
+  }
+}
 </script>
 
 <template>
   <div id="app" class="min-h-screen flex flex-col bg-gray-100">
     <!-- Header -->
     <header class="bg-gray-500 text-white p-4 flex justify-between items-center shadow-md">
-      <h1 class="text-3xl font-bold">3D Sneaker Store</h1>
+      <h1 class="text-2xl font-bold">3D Sneaker Store</h1>
       <!--<nav>
         <ul class="flex space-x-6">
           <li><router-link to="/orders" class="hover:underline">Orders</router-link></li>
@@ -36,7 +48,7 @@ const logout = () => {
 
           <!-- Product Image / 3D Configurator -->
           <div class="flex-none w-full lg:w-3/4 mb-4 relative z-10">
-            <div class="w-full h-96 bg-gray-200 rounded-lg shadow-lg overflow-hidden">
+            <div class="w-full h-full bg-gray-200 shadow-lg overflow-hidden">
               <!-- 3D configurator or larger product display space can be inserted here -->
               <img src="#" alt="Product" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
             </div>
@@ -91,43 +103,43 @@ const logout = () => {
                 </label>
                 <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
                   <input class="sr-only peer" name="size" type="radio" value="41" />
-                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-gray-400">
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
                     41
                   </div>
                 </label>
                 <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
                   <input class="sr-only peer" name="size" type="radio" value="42" />
-                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-gray-400">
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
                     42
                   </div>
                 </label>
                 <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
                   <input class="sr-only peer" name="size" type="radio" value="43" />
-                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-gray-400">
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
                     43
                   </div>
                 </label>
                 <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
                   <input class="sr-only peer" name="size" type="radio" value="44" />
-                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-gray-400">
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
                     44
                   </div>
                 </label>
                 <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
                   <input class="sr-only peer" name="size" type="radio" value="45" />
-                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-gray-400">
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
                     45
                   </div>
                 </label>
                 <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
                   <input class="sr-only peer" name="size" type="radio" value="46" />
-                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-gray-400">
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
                     46
                   </div>
                 </label>
                 <label class="w-1/4 sm:w-1/6 md:w-1/5 mb-2">
                   <input class="sr-only peer" name="size" type="radio" value="47" />
-                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-gray-400">
+                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white before:absolute before:z-[-1] before:top-0.5 before:left-0.5 before:w-full before:h-full peer-checked:before:bg-teal-400">
                     47
                   </div>
                 </label>
@@ -169,9 +181,9 @@ const logout = () => {
             <div class="my-4">
               <label class="block text-lg font-medium text-gray-800">Quantity</label>
               <div class="flex items-center space-x-2">
-                <button class="text-gray-500 border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-200">-</button>
-                <input type="number" value="1" class="w-16 text-center border border-gray-300 py-2 rounded-md" min="1" />
-                <button class="text-gray-500 border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-200">+</button>
+                <button type="button" @click="decreaseQuantity" class="text-gray-500 border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-200">-</button>
+                <input type="number" v-model="quantity" class="w-16 text-center border border-gray-300 py-2 rounded-md" min="1" />
+                <button type="button" @click="increaseQuantity" class="text-gray-500 border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-200">+</button>
               </div>
             </div>
 
