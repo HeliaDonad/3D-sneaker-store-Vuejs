@@ -13,28 +13,26 @@ export default {
 
     const register = async () => {
       try {
-        const response = await axios.post('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/register', {
-          name: name.value,
-          email: email.value,
-          password: password.value,
-        });
-        console.log(response.data); // Debugging: Log the response data
-        router.push('/login'); // Redirect to login page after successful registration
-      } catch (err) {
-        console.error('Error response:', err.response); // Debugging: Log the error response
-        if (err.response) {
-          // Server responded with a status other than 200 range
-          error.value = err.response.data.message || "Registration failed. Please try again.";
-        } else if (err.request) {
-          // Request was made but no response was received
-          console.error('Request error:', err.request);
-          error.value = "No response from server. Please try again later.";
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          console.error('Error', err.message);
-          error.value = "An error occurred. Please try again.";
-        }
-      }
+    const response = await axios.post('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/register', {
+        name: name.value,
+        email: email.value,
+        password: password.value,
+    });
+    console.log(response.data); // Controleer wat je terugkrijgt in het console
+    router.push('/login'); // Verwijs na succesvolle registratie door
+} catch (err) {
+    console.error('Error response:', err.response); // Log error in het console
+    if (err.response) {
+        error.value = err.response.data.message || "Registration failed. Please try again.";
+    } else if (err.request) {
+        console.error('Request error:', err.request);
+        error.value = "No response from server. Please try again later.";
+    } else {
+        console.error('Error', err.message);
+        error.value = "An error occurred. Please try again.";
+    }
+}
+
     }
 
     return {
