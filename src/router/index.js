@@ -13,6 +13,7 @@ const routes = [
   { path: '/order/:id', component: Order },
   { path: '/dashboard', component: Dashboard },
   { path: '/change-password', component: PasswordChange },
+  { path: '/', redirect: '/login' } // Redirect root to login
 ];
 
 const router = createRouter({
