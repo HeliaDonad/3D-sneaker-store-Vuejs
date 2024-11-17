@@ -6,24 +6,36 @@ const router = useRouter();
 const cart = ref([]); // Lokale winkelwagen
 const showNotification = ref(false);
 const notificationMessage = ref('');
+const isLoggedIn = ref(false); // Inlogstatus
 
-// Functie om de winkelwagen vanuit localStorage te laden
+// Controleer de loginstatus bij component mount
+const checkLoginStatus = () => {
+  const token = localStorage.getItem('token');
+  isLoggedIn.value = !!token;
+};
+
+// Laad de winkelwagen vanuit localStorage
 const loadCart = () => {
   const storedCart = localStorage.getItem('cart');
   cart.value = storedCart ? JSON.parse(storedCart) : []; // Ophalen of initialiseren als lege array
 };
 
-// Functie om een product uit de winkelwagen te verwijderen
+// Verwijder een product uit de winkelwagen
 const removeItem = (index) => {
   cart.value.splice(index, 1); // Verwijder het item uit de array
   localStorage.setItem('cart', JSON.stringify(cart.value)); // Werk de localStorage bij
-  notificationMessage.value = 'Item removed from the bag!';
-  showNotification.value = true;
-  setTimeout(() => (showNotification.value = false), 3000);
 };
 
-// Functie om een bestelling te plaatsen
+// Plaats een bestelling
 const placeOrder = () => {
+  if (!isLoggedIn.value) {
+    notificationMessage.value = 'Please log in to place your order!';
+    showNotification.value = true;
+    setTimeout(() => (showNotification.value = false), 3000);
+    router.push('/login'); // Stuur naar loginpagina
+    return;
+  }
+
   if (cart.value.length === 0) {
     notificationMessage.value = 'Your bag is empty!';
     showNotification.value = true;
@@ -31,28 +43,30 @@ const placeOrder = () => {
     return;
   }
 
-  // Hier plaatsen we de bestelling lokaal
-  const storedOrders = localStorage.getItem('orders');
-  const orders = storedOrders ? JSON.parse(storedOrders) : [];
-  orders.push({
-    id: Date.now().toString(),
+  // Plaats de bestelling (simulatie)
+  const orders = JSON.parse(localStorage.getItem('orders')) || [];
+  const newOrder = {
+    id: orders.length + 1,
     items: [...cart.value],
     status: 'Pending',
-  });
-
+  };
+  orders.push(newOrder);
   localStorage.setItem('orders', JSON.stringify(orders));
-  cart.value = []; // Leeg de winkelwagen
-  localStorage.removeItem('cart'); // Verwijder winkelwagen uit localStorage
 
+  cart.value = []; // Maak de winkelwagen leeg
+  localStorage.removeItem('cart'); // Werk localStorage bij
   notificationMessage.value = 'Order placed successfully!';
   showNotification.value = true;
-  setTimeout(() => (showNotification.value = false), 3000);
 
-  router.push('/orders'); // Navigeer naar orders pagina
+  setTimeout(() => (showNotification.value = false), 3000);
+  router.push('/orders'); // Navigeer naar de bestellingenpagina
 };
 
-// Laad de winkelwagen bij het laden van de component
-onMounted(loadCart);
+// Controleer login en laad de winkelwagen bij component mount
+onMounted(() => {
+  checkLoginStatus();
+  loadCart();
+});
 </script>
 
 <template>
@@ -78,7 +92,7 @@ onMounted(loadCart);
         </div>
         <button
           @click="removeItem(index)"
-          class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+          class="bg-red-500 text-white px-2 py-1 rounded"
         >
           Remove
         </button>
@@ -106,5 +120,5 @@ onMounted(loadCart);
 </template>
 
 <style scoped>
-/* Voeg optionele stijlen toe als nodig */
+/* Voeg optionele stijlen toe indien nodig */
 </style>
