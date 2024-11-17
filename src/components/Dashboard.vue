@@ -1,58 +1,60 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { onMounted } from 'vue';
 
 const router = useRouter();
-
-// Reactive state to check login status
 const isLoggedIn = ref(false);
 
-// Check for a valid token on component mount to set initial login status
-onMounted(() => {
+// Check login status
+const checkLoginStatus = () => {
   const token = localStorage.getItem('token');
-  isLoggedIn.value = !!token;
-  if (!isLoggedIn.value) {
-    router.push('/login'); // Redirect to login if not authenticated
-  }
-});
+  isLoggedIn.value = !!token; // User is logged in if token exists
+};
 
-// Logout function to reset login status and redirect to login page
+// Run on component mount
+checkLoginStatus();
+
 const logout = () => {
+  localStorage.removeItem('token');
   isLoggedIn.value = false;
-  localStorage.removeItem('token'); // Remove token from storage
   router.push('/login');
-};
-
-// Quantity controls for product customization
-const quantity = ref(1);
-
-const increaseQuantity = () => {
-  quantity.value++;
-};
-
-const decreaseQuantity = () => {
-  if (quantity.value > 1) {
-    quantity.value--;
-  }
 };
 </script>
 
 <template>
-  <div id="app" class="min-h-screen flex flex-col bg-gray-100">
-    <!-- Header -->
-    <header class="bg-gray-500 text-white p-4 flex justify-between items-center shadow-md">
-      <h1 class="text-2xl font-bold">3D Sneaker Store</h1>
+  <div class="min-h-screen bg-gray-100">
+    <header class="bg-gray-500 text-white p-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold">Dashboard</h1>
       <nav>
-        <ul class="flex space-x-6">
-          <li><router-link to="/orders" class="hover:underline">Orders</router-link></li>
-          <li><router-link to="/change-password" class="hover:underline">Change Password</router-link></li>
+        <ul class="flex space-x-4">
+          <li v-if="!isLoggedIn">
+            <router-link to="/bag" class="hover:underline">Bag</router-link>
+          </li>
           <li v-if="isLoggedIn">
-            <button @click="logout" class="hover:underline">Logout</button>
+            <router-link to="/cart" class="hover:underline">Mandje</router-link>
+          </li>
+          <li>
+            <button
+              v-if="!isLoggedIn"
+              @click="() => router.push('/login')"
+              class="hover:underline"
+            >
+              Account
+            </button>
+            <div v-else>
+              <button @click="() => router.push('/orders')" class="hover:underline">Orders</button>
+              <button @click="() => router.push('/change-password')" class="hover:underline">Change Password</button>
+              <button @click="logout" class="hover:underline">Logout</button>
+            </div>
           </li>
         </ul>
       </nav>
     </header>
+
+    <main class="p-6">
+      <h2 v-if="!isLoggedIn">Welcome to the 3D Sneaker Store! Please log in to personalize your experience.</h2>
+      <h2 v-else>Welcome back! Manage your account and explore your dashboard.</h2>
+    </main>
 
     <!-- Main Layout -->
     <div class="flex flex-grow">
