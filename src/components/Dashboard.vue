@@ -13,12 +13,6 @@ const checkLoginStatus = () => {
 // Controleer loginstatus bij component mount
 checkLoginStatus();
 
-const logout = () => {
-  localStorage.removeItem('token');
-  isLoggedIn.value = false;
-  router.push('/login');
-};
-
 const cart = ref([]); // Lokale winkelwagen
 const selectedSize = ref('36'); // Standaardmaat
 const selectedColor = ref('black'); // Standaardkleur
@@ -68,7 +62,7 @@ initializeCart();
 <template>
   <div class="min-h-screen bg-gray-100">
     <header class="bg-gray-500 text-white p-4 flex justify-between items-center">
-      <h1 class="text-2xl font-bold">Dashboard</h1>
+      <h1 class="text-2xl font-bold">Flux.be</h1>
       <nav>
         <ul class="flex space-x-4">
           <li v-if="!isLoggedIn">
@@ -86,13 +80,9 @@ initializeCart();
               Account
             </button>
             <div v-else>
-              <button @click="() => router.push('/orders')" class="hover:underline">
-                Orders
+              <button @click="() => router.push('/account')" class="hover:underline">
+                Account
               </button>
-              <button @click="() => router.push('/change-password')" class="hover:underline">
-                Change Password
-              </button>
-              <button @click="logout" class="hover:underline">Logout</button>
             </div>
           </li>
         </ul>
