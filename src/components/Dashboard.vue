@@ -18,6 +18,10 @@ const selectedSize = ref('36'); // Standaardmaat
 const selectedColor = ref('gray'); // Standaardkleur
 const quantity = ref(1); // Standaardhoeveelheid
 
+// Notificatiebalk status
+const showNotification = ref(false);
+const notificationMessage = ref('');
+
 // Initialiseer de winkelwagen vanuit localStorage
 const initializeCart = () => {
   const storedCart = localStorage.getItem('cart');
@@ -40,7 +44,15 @@ const addToCart = () => {
   // Update de winkelwagen in localStorage
   localStorage.setItem('cart', JSON.stringify(updatedCart));
 
-  alert('Product added to your bag!');
+  // Toon een notificatie
+  showNotification.value = true;
+  notificationMessage.value = 'Product added to your bag!';
+
+  // Verberg de notificatie na 3 seconden
+  setTimeout(() => {
+    showNotification.value = false;
+    notificationMessage.value = '';
+  }, 3000);
 };
 
 // Verhoog de hoeveelheid
@@ -88,6 +100,14 @@ initializeCart();
         </ul>
       </nav>
     </header>
+
+       <!-- Notificatiebalk -->
+    <div
+      v-if="showNotification"
+      class="fixed top-0 left-0 right-0 bg-green-500 text-white text-center py-2 z-50"
+    >
+      {{ notificationMessage }}
+    </div>
 
     <main class="p-6">
       <h2 v-if="!isLoggedIn">Welcome to the 3D Sneaker Store! Please log in to personalize your experience.</h2>
