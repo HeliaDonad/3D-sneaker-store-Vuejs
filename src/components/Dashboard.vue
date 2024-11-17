@@ -19,33 +19,50 @@ const logout = () => {
   router.push('/login');
 };
 
-// Product configuratie
-const quantity = ref(1);
-const selectedSize = ref('36');
-const selectedColor = ref('black');
-const cart = ref([]);
+const cart = ref([]); // Lokale winkelwagen
+const selectedSize = ref('36'); // Standaardmaat
+const selectedColor = ref('black'); // Standaardkleur
+const quantity = ref(1); // Standaardhoeveelheid
 
-// Functie om product toe te voegen aan cart
+// Initialiseer de winkelwagen vanuit localStorage
+const initializeCart = () => {
+  const storedCart = localStorage.getItem('cart');
+  cart.value = storedCart ? JSON.parse(storedCart) : [];
+};
+
+// Voeg een product toe aan de winkelwagen
 const addToCart = () => {
   const product = {
     size: selectedSize.value,
     color: selectedColor.value,
     quantity: quantity.value,
   };
-  cart.value.push(product);
-  localStorage.setItem('cart', JSON.stringify(cart.value)); // Opslaan in localStorage
+
+  // Voeg het nieuwe product toe aan de bestaande winkelwagen
+  const storedCart = localStorage.getItem('cart');
+  const updatedCart = storedCart ? JSON.parse(storedCart) : [];
+  updatedCart.push(product);
+
+  // Update de winkelwagen in localStorage
+  localStorage.setItem('cart', JSON.stringify(updatedCart));
+
   alert('Product added to your bag!');
 };
 
+// Verhoog de hoeveelheid
 const increaseQuantity = () => {
   quantity.value++;
 };
 
+// Verlaag de hoeveelheid
 const decreaseQuantity = () => {
   if (quantity.value > 1) {
     quantity.value--;
   }
 };
+
+// Initialiseer de winkelwagen bij component mount
+initializeCart();
 </script>
 
 <template>
