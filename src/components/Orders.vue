@@ -1,57 +1,42 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 
+// Haal bestellingen op uit localStorage
 const orders = ref([]);
-const isLoggedIn = ref(false);
-const notificationMessage = ref('');
-const showNotification = ref(false);
 
-const fetchOrders = async () => {
-  try {
-    const response = await fetch('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      orders.value = data.data; // Pas dit aan afhankelijk van de API-respons
-    } else {
-      throw new Error('Kan bestellingen niet ophalen.');
-    }
-  } catch (error) {
-    notificationMessage.value = error.message;
-    showNotification.value = true;
-    setTimeout(() => (showNotification.value = false), 3000);
-  }
+const loadOrders = () => {
+  const storedOrders = localStorage.getItem('orders');
+  orders.value = storedOrders ? JSON.parse(storedOrders) : [];
 };
 
-// Controleer loginstatus
-const checkLoginStatus = () => {
-  const token = localStorage.getItem('token');
-  isLoggedIn.value = !!token;
-};
-
-onMounted(() => {
-  checkLoginStatus();
-  if (isLoggedIn.value) fetchOrders();
-});
+// Laad bestellingen bij component mount
+loadOrders();
 </script>
 
 <template>
-  <div>
-    <h1>Mijn Bestellingen</h1>
-    <div v-if="orders.length === 0">Je hebt nog geen bestellingen geplaatst.</div>
-    <ul>
-      <li v-for="order in orders" :key="order.id">
-        <router-link :to="'/orders/' + order.id">Bestelling #{{ order.id }}</router-link>
+  <div class="p-6">
+    <h1 class="text-2xl font-bold mb-4">Orders</h1>
+    <div v-if="orders.length === 0" class="text-gray-500">
+      No orders found.
+    </div>
+    <ul v-else class="space-y-4">
+      <li
+        v-for="(order, index) in orders"
+        :key="index"
+        class="border p-4 rounded shadow"
+      >
+        <p><strong>Order ID:</strong> {{ index + 1 }}</p>
+        <p><strong>Items:</strong></p>
+        <ul>
+          <li
+            v-for="(item, i) in order.items"
+            :key="i"
+          >
+            Size: {{ item.size }}, Color: {{ item.color }}, Quantity: {{ item.quantity }}
+          </li>
+        </ul>
+        <p><strong>Status:</strong> {{ order.status }}</p>
       </li>
     </ul>
-
-    <!-- Notificatie -->
-    <div v-if="showNotification" class="fixed top-0 left-0 right-0 bg-red-500 text-white text-center py-2">
-      {{ notificationMessage }}
-    </div>
   </div>
 </template>

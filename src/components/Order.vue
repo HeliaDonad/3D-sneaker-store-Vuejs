@@ -1,53 +1,42 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
-const order = ref(null);
-const notificationMessage = ref('');
-const showNotification = ref(false);
+const orderId = route.params.id;
 
-const fetchOrder = async () => {
-  try {
-    const response = await fetch(`https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${route.params.id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    });
+const orders = ref([]);
+const orderDetails = ref(null);
 
-    if (response.ok) {
-      const data = await response.json();
-      order.value = data.data; // Pas dit aan afhankelijk van de API-respons
-    } else {
-      throw new Error('Kan bestelling niet ophalen.');
-    }
-  } catch (error) {
-    notificationMessage.value = error.message;
-    showNotification.value = true;
-    setTimeout(() => (showNotification.value = false), 3000);
-  }
+// Laad orders uit localStorage
+const loadOrders = () => {
+  const storedOrders = localStorage.getItem('orders');
+  orders.value = storedOrders ? JSON.parse(storedOrders) : [];
+  orderDetails.value = orders.value[orderId - 1] || null; // Zoek orderdetails op basis van ID
 };
 
-onMounted(fetchOrder);
+// Initialiseer orders bij component mount
+loadOrders();
 </script>
 
 <template>
-  <div>
-    <h1>Bestelling Details</h1>
-    <div v-if="!order">Laden...</div>
+  <div class="p-6">
+    <h1 class="text-2xl font-bold mb-4">Order Details</h1>
+    <div v-if="!orderDetails" class="text-gray-500">
+      Order not found.
+    </div>
     <div v-else>
-      <p>Bestelling ID: {{ order.id }}</p>
-      <p>Status: {{ order.status }}</p>
+      <p><strong>Order ID:</strong> {{ orderId }}</p>
+      <p><strong>Items:</strong></p>
       <ul>
-        <li v-for="item in order.items" :key="item.id">
-          Maat: {{ item.size }}, Kleur: {{ item.color }}, Hoeveelheid: {{ item.quantity }}
+        <li
+          v-for="(item, i) in orderDetails.items"
+          :key="i"
+        >
+          Size: {{ item.size }}, Color: {{ item.color }}, Quantity: {{ item.quantity }}
         </li>
       </ul>
-    </div>
-
-    <!-- Notificatie -->
-    <div v-if="showNotification" class="fixed top-0 left-0 right-0 bg-red-500 text-white text-center py-2">
-      {{ notificationMessage }}
+      <p><strong>Status:</strong> {{ orderDetails.status }}</p>
     </div>
   </div>
 </template>
