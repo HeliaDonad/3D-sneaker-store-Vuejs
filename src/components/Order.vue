@@ -1,42 +1,44 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
-const orderId = route.params.id;
+const order = ref(null);
 
-const orders = ref([]);
-const orderDetails = ref(null);
-
-// Laad orders uit localStorage
-const loadOrders = () => {
-  const storedOrders = localStorage.getItem('orders');
-  orders.value = storedOrders ? JSON.parse(storedOrders) : [];
-  orderDetails.value = orders.value[orderId - 1] || null; // Zoek orderdetails op basis van ID
+const loadOrderDetails = () => {
+  const orders = JSON.parse(localStorage.getItem('orders')) || [];
+  const orderId = route.params.id;
+  order.value = orders.find((o) => o.id === orderId);
 };
 
-// Initialiseer orders bij component mount
-loadOrders();
+onMounted(() => {
+  loadOrderDetails();
+});
 </script>
 
 <template>
   <div class="p-6">
     <h1 class="text-2xl font-bold mb-4">Order Details</h1>
-    <div v-if="!orderDetails" class="text-gray-500">
+    <div v-if="!order" class="text-gray-500">
       Order not found.
     </div>
     <div v-else>
-      <p><strong>Order ID:</strong> {{ orderId }}</p>
-      <p><strong>Items:</strong></p>
+      <p><strong>Order ID:</strong> {{ order.id }}</p>
       <ul>
         <li
-          v-for="(item, i) in orderDetails.items"
-          :key="i"
+          v-for="(item, index) in order.items"
+          :key="index"
+          class="border p-2 my-2 rounded"
         >
-          Size: {{ item.size }}, Color: {{ item.color }}, Quantity: {{ item.quantity }}
+          <p><strong>Size:</strong> {{ item.size }}</p>
+          <p><strong>Color:</strong> {{ item.color }}</p>
+          <p><strong>Quantity:</strong> {{ item.quantity }}</p>
         </li>
       </ul>
-      <p><strong>Status:</strong> {{ orderDetails.status }}</p>
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Voeg extra stijlen toe indien nodig */
+</style>
