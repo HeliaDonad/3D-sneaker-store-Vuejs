@@ -25,15 +25,16 @@ const router = createRouter({
   routes,
 });
 
-/*router.beforeEach((to, from, next) => {
+router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token');
   const isAuthenticated = !!token;
 
-  if (!isAuthenticated && to.path !== '/login') {
+  if (!isAuthenticated && to.path !== '/login' && to.path !== '/register' && to.path !== '/dashboard' && to.path !== '/bag') {
     next('/login'); // Redirect naar login als de gebruiker niet is ingelogd
   } else {
     next();
   }
-}); */
+});
+
 
 export default router;
