@@ -3,12 +3,12 @@ import { ref, onMounted } from 'vue';
 
 const orders = ref([]);
 
-// Functie om de orders vanuit localStorage te laden
+// Functie om orders vanuit localStorage te laden
 const loadOrders = () => {
   orders.value = JSON.parse(localStorage.getItem('orders')) || [];
 };
 
-// Functie om de status van een order bij te werken
+// Functie om de status van een bestelling te updaten
 const updateOrderStatus = (id, newStatus) => {
   const orderIndex = orders.value.findIndex((order) => order.id === id);
   if (orderIndex !== -1) {
@@ -17,13 +17,13 @@ const updateOrderStatus = (id, newStatus) => {
   }
 };
 
-// Functie om een order te verwijderen
+// Functie om een bestelling te verwijderen
 const deleteOrder = (id) => {
   orders.value = orders.value.filter((order) => order.id !== id);
   localStorage.setItem('orders', JSON.stringify(orders.value));
 };
 
-// Laad de orders bij het laden van de component
+// Bij component mount orders laden
 onMounted(() => {
   loadOrders();
 });
@@ -33,12 +33,12 @@ onMounted(() => {
   <div class="p-6">
     <h1 class="text-2xl font-bold mb-4">All Orders</h1>
 
-    <!-- Controleer of er orders zijn -->
+    <!-- Geen orders gevonden -->
     <div v-if="orders.length === 0" class="text-gray-500">
       No orders found.
     </div>
 
-    <!-- Toon de lijst van orders -->
+    <!-- Toon alle orders -->
     <ul v-else class="space-y-4">
       <li
         v-for="order in orders"
@@ -47,21 +47,42 @@ onMounted(() => {
       >
         <div>
           <p><strong>Order ID:</strong> {{ order.id }}</p>
-          <p><strong>Status:</strong> {{ order.status }}</p>
+          <p>
+            <strong>Status: </strong>
+            <span
+              :class="{
+                'text-yellow-500': order.status === 'Pending',
+                'text-blue-500': order.status === 'In Production',
+                'text-green-500': order.status === 'Shipped'
+              }"
+            >
+              {{ order.status }}
+            </span>
+          </p>
           <router-link :to="`/orders/${order.id}`" class="text-blue-500 underline">
             View Details
           </router-link>
         </div>
+
+        <!-- Status update knoppen -->
         <div class="flex space-x-2">
           <button
-            @click="updateOrderStatus(order.id, 'Shipped')"
-            class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+            v-if="order.status === 'Pending'"
+            @click="updateOrderStatus(order.id, 'In Production')"
+            class="bg-blue-500 text-white px-2 py-1 rounded"
           >
-            Mark as Shipped
+            In Production
+          </button>
+          <button
+            v-if="order.status === 'In Production'"
+            @click="updateOrderStatus(order.id, 'Shipped')"
+            class="bg-green-500 text-white px-2 py-1 rounded"
+          >
+            Shipped
           </button>
           <button
             @click="deleteOrder(order.id)"
-            class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+            class="bg-red-500 text-white px-2 py-1 rounded"
           >
             Delete
           </button>
@@ -72,5 +93,18 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* Voeg optionele stijlen toe als nodig */
+/* Basisstijl voor knoppen */
+button {
+  font-weight: bold;
+}
+
+.text-yellow-500 {
+  color: #facc15;
+}
+.text-blue-500 {
+  color: #3b82f6;
+}
+.text-green-500 {
+  color: #22c55e;
+}
 </style>
