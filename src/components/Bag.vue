@@ -79,7 +79,7 @@ onMounted(() => {
     </div>
 
     <!-- Toon de winkelwagen als er producten zijn -->
-    <ul v-else class="space-y-4">
+    <ul v-else class="space-y-4 p-2">
       <li
         v-for="(item, index) in cart"
         :key="index"
@@ -100,7 +100,7 @@ onMounted(() => {
     </ul>
 
     <!-- Plaats bestelling knop -->
-    <div v-if="cart.length > 0" class="mt-6">
+    <div v-if="cart.length > 0" class="mt-6 p-2">
       <button
         @click="placeOrder"
         class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
