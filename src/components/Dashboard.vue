@@ -19,6 +19,19 @@ const logout = () => {
   isLoggedIn.value = false;
   router.push('/login');
 };
+
+// Quantity controls for product customization
+const quantity = ref(1);
+
+const increaseQuantity = () => {
+  quantity.value++;
+};
+
+const decreaseQuantity = () => {
+  if (quantity.value > 1) {
+    quantity.value--;
+  }
+};
 </script>
 
 <template>
