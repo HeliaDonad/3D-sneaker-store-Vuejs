@@ -1,7 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const cart = ref([]); // Lokale winkelwagen
+const showNotification = ref(false);
+const notificationMessage = ref('');
 
 // Functie om de winkelwagen vanuit localStorage te laden
 const loadCart = () => {
@@ -13,6 +17,42 @@ const loadCart = () => {
 const removeItem = (index) => {
   cart.value.splice(index, 1); // Verwijder het item uit de array
   localStorage.setItem('cart', JSON.stringify(cart.value)); // Werk de localStorage bij
+};
+
+// Functie om een bestelling te plaatsen
+const placeOrder = async () => {
+  if (cart.value.length === 0) {
+    notificationMessage.value = 'Your bag is empty!';
+    showNotification.value = true;
+    setTimeout(() => (showNotification.value = false), 3000);
+    return;
+  }
+
+  try {
+    const response = await fetch('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify({ items: cart.value }),
+    });
+
+    if (response.ok) {
+      cart.value = []; // Leeg de winkelwagen
+      localStorage.removeItem('cart'); // Verwijder winkelwagen uit localStorage
+      notificationMessage.value = 'Order placed successfully!';
+      showNotification.value = true;
+      setTimeout(() => (showNotification.value = false), 3000);
+      router.push('/orders'); // Navigeer naar orders pagina
+    } else {
+      throw new Error('Failed to place order.');
+    }
+  } catch (error) {
+    notificationMessage.value = error.message;
+    showNotification.value = true;
+    setTimeout(() => (showNotification.value = false), 3000);
+  }
 };
 
 // Laad de winkelwagen bij het laden van de component
@@ -48,6 +88,24 @@ onMounted(loadCart);
         </button>
       </li>
     </ul>
+
+    <!-- Plaats bestelling knop -->
+    <div v-if="cart.length > 0" class="mt-6">
+      <button
+        @click="placeOrder"
+        class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+      >
+        Place Order
+      </button>
+    </div>
+
+    <!-- Notificatie -->
+    <div
+      v-if="showNotification"
+      class="fixed top-0 left-0 right-0 bg-green-500 text-white text-center py-2"
+    >
+      {{ notificationMessage }}
+    </div>
   </div>
 </template>
 

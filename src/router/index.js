@@ -7,7 +7,6 @@ import Bag from '../components/Bag.vue';
 import Account from '../components/Account.vue';
 import Orders from '../components/Orders.vue';
 import Order from '../components/Order.vue';
-import Shoe from '../components/Shoe.vue';
 
 const routes = [
   { path: '/login', component: Login },
@@ -16,7 +15,6 @@ const routes = [
   { path: '/change-password', component: PasswordChange },
   { path: '/bag', component: Bag },
   { path: '/account', component: Account },
-  { path: '/shoe', component: Shoe },
   { path: '/orders', component: Orders },
   { path: '/orders/:id', component: Order },
   { path: '/', redirect: '/dashboard' } // Redirect root to dashboard
