@@ -34,6 +34,15 @@ const logout = () => {
           Logout
         </a>
       </li>
+      <li>
+        <a
+          @click.prevent="() => router.push('/orders')"
+          href="#"
+          class="hover:underline cursor-pointer"
+        >
+          Orders
+        </a>
+      </li>
     </ul>
   </div>
 </template>
