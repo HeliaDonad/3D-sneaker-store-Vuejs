@@ -11,7 +11,13 @@ const error = ref('');
 const checkLoginStatus = () => {
   const token = localStorage.getItem('token');
   isLoggedIn.value = !!token;
+  
+  // Wis de data als de gebruiker niet is ingelogd
+  if (!isLoggedIn.value) {
+    orders.value = [];
+  }
 };
+
 
 // Controleer loginstatus bij component mount
 checkLoginStatus();
@@ -84,6 +90,18 @@ const fetchOrders = async () => {
   }
 };
 
+const logout = () => {
+  // Verwijder de token
+  localStorage.removeItem('token');
+
+  // Reset lokale state
+  isLoggedIn.value = false;
+  orders.value = [];
+  
+  // Stuur gebruiker naar de inlogpagina
+  router.push('/login');
+};
+
 // Haal bestellingen op zodra het component geladen is
 onMounted(fetchOrders);
 // Initialiseer de winkelwagen bij component mount
@@ -132,7 +150,17 @@ initializeCart();
       <h2 v-if="!isLoggedIn">Welcome to the 3D Sneaker Store! Please log in to personalize your experience.</h2>
       <h2 v-else>Welcome back! Manage your account and explore your dashboard.</h2>
     </main>
-
+    <section v-if="orders.length > 0" class="mt-8">
+      <h3 class="text-xl font-bold">Your Orders</h3>
+      <ul class="mt-4">
+        <li v-for="order in orders" :key="order._id" class="border p-4 rounded-lg mb-4">
+          <p><strong>Order ID:</strong> {{ order._id }}</p>
+          <p><strong>Color:</strong> {{ order.color }}</p>
+          <p><strong>Size:</strong> {{ order.size }}</p>
+          <p><strong>Status:</strong> {{ order.status }}</p>
+        </li>
+      </ul>
+    </section>
     <!-- Hoofdinhoud -->
     <div class="flex flex-grow">
       <main class="flex-grow p-4 bg-white shadow-inner">
