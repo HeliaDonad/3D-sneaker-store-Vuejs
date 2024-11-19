@@ -1,9 +1,12 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const isLoggedIn = ref(false);
+
+const orders = ref([]); // Bestellingen van de gebruiker
+const error = ref('');
 
 const checkLoginStatus = () => {
   const token = localStorage.getItem('token');
@@ -67,6 +70,22 @@ const decreaseQuantity = () => {
   }
 };
 
+const fetchOrders = async () => {
+  try {
+    const response = await axios.get('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/dashboard', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`, // Voeg de JWT-token toe
+      },
+    });
+    orders.value = response.data.data.orders;
+  } catch (err) {
+    console.error('Error fetching orders:', err);
+    error.value = err.response?.data?.message || 'Failed to fetch orders.';
+  }
+};
+
+// Haal bestellingen op zodra het component geladen is
+onMounted(fetchOrders);
 // Initialiseer de winkelwagen bij component mount
 initializeCart();
 </script>
