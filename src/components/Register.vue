@@ -18,19 +18,19 @@ export default {
         email: email.value,
         password: password.value,
     });
-    console.log(response.data); // Controleer wat je terugkrijgt in het console
-    router.push('/login'); // Verwijs na succesvolle registratie door
+    console.log(response.data.message); // Log succesbericht
+    error.value = ''; // Reset foutmeldingen
+    router.push('/login'); // Verwijs naar de inlogpagina
+
 } catch (err) {
-    console.error('Error response:', err.response); // Log error in het console
-    if (err.response) {
-        error.value = err.response.data.message || "Registration failed. Please try again.";
-    } else if (err.request) {
-        console.error('Request error:', err.request);
-        error.value = "No response from server. Please try again later.";
-    } else {
-        console.error('Error', err.message);
-        error.value = "An error occurred. Please try again.";
-    }
+  console.error('Error:', err);
+  if (err.response) {
+    error.value = err.response.data.message || "Registratie mislukt. Probeer opnieuw.";
+  } else if (err.request) {
+    error.value = "Geen antwoord van de server. Controleer je verbinding.";
+  } else {
+    error.value = "Er is een onverwachte fout opgetreden. Probeer opnieuw.";
+  }
 }
 
     }
