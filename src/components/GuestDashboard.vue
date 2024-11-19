@@ -1,23 +1,15 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const isLoggedIn = ref(false);
 
-const orders = ref([]); // Bestellingen van de gebruiker
-const error = ref('');
-
+// Controleer of de gebruiker is ingelogd
 const checkLoginStatus = () => {
   const token = localStorage.getItem('token');
   isLoggedIn.value = !!token;
-  
-  // Wis de data als de gebruiker niet is ingelogd
-  if (!isLoggedIn.value) {
-    orders.value = [];
-  }
 };
-
 
 // Controleer loginstatus bij component mount
 checkLoginStatus();
@@ -76,34 +68,6 @@ const decreaseQuantity = () => {
   }
 };
 
-const fetchOrders = async () => {
-  try {
-    const response = await axios.get('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/dashboard', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`, // Voeg de JWT-token toe
-      },
-    });
-    orders.value = response.data.data.orders;
-  } catch (err) {
-    console.error('Error fetching orders:', err);
-    error.value = err.response?.data?.message || 'Failed to fetch orders.';
-  }
-};
-
-const logout = () => {
-  // Verwijder de token
-  localStorage.removeItem('token');
-
-  // Reset lokale state
-  isLoggedIn.value = false;
-  orders.value = [];
-  
-  // Stuur gebruiker naar de inlogpagina
-  router.push('/login');
-};
-
-// Haal bestellingen op zodra het component geladen is
-onMounted(fetchOrders);
 // Initialiseer de winkelwagen bij component mount
 initializeCart();
 </script>
@@ -114,31 +78,20 @@ initializeCart();
       <h1 class="text-2xl font-bold">Flux.be</h1>
       <nav>
         <ul class="flex space-x-4">
-          <li v-if="!isLoggedIn">
-            <router-link to="/bag" class="hover:underline">Bag</router-link>
-          </li>
-          <li v-if="isLoggedIn">
+          <li>
             <router-link to="/bag" class="hover:underline">Bag</router-link>
           </li>
           <li>
-            <button
-              v-if="!isLoggedIn"
-              @click="() => router.push('/login')"
-              class="hover:underline"
-            >
-              Account
-            </button>
-            <div v-else>
-              <button @click="() => router.push('/account')" class="hover:underline">
-                Account
-              </button>
-            </div>
+            <router-link to="/login" class="hover:underline">Log In</router-link>
+          </li>
+          <li>
+            <router-link to="/register" class="hover:underline">Register</router-link>
           </li>
         </ul>
       </nav>
     </header>
 
-       <!-- Notificatiebalk -->
+    <!-- Notificatiebalk -->
     <div
       v-if="showNotification"
       class="fixed top-0 left-0 right-0 bg-green-500 text-white text-center py-2 z-50"
@@ -147,8 +100,10 @@ initializeCart();
     </div>
 
     <main class="p-6">
-      <h2 v-if="!isLoggedIn">Welcome to the 3D Sneaker Store! Please log in to personalize your experience.</h2>
-      <h2 v-else>Welcome back! Manage your account and explore your dashboard.</h2>
+      <h2>Welcome to the 3D Sneaker Store!</h2>
+      <p class="mt-2">
+        Log in or register to access your personalized dashboard and view your orders.
+      </p>
     </main>
 
     <!-- Hoofdinhoud -->
@@ -255,11 +210,3 @@ initializeCart();
     </div>
   </div>
 </template>
-
-<style scoped>
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-</style>
