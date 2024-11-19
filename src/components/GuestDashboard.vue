@@ -4,6 +4,12 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const isLoggedIn = ref(false);
+const showNotification = ref(false);
+const notificationMessage = ref('');
+
+const selectedSize = ref('36'); // Standaardmaat
+const selectedColor = ref('gray'); // Standaardkleur
+const quantity = ref(1); // Standaardhoeveelheid
 
 // Controleer of de gebruiker is ingelogd
 const checkLoginStatus = () => {
@@ -14,42 +20,35 @@ const checkLoginStatus = () => {
 // Controleer loginstatus bij component mount
 checkLoginStatus();
 
-const cart = ref([]); // Lokale winkelwagen
-const selectedSize = ref('36'); // Standaardmaat
-const selectedColor = ref('gray'); // Standaardkleur
-const quantity = ref(1); // Standaardhoeveelheid
-
-// Notificatiebalk status
-const showNotification = ref(false);
-const notificationMessage = ref('');
-
-// Initialiseer de winkelwagen vanuit localStorage
-const initializeCart = () => {
-  const storedCart = localStorage.getItem('cart');
-  cart.value = storedCart ? JSON.parse(storedCart) : [];
-};
-
 // Voeg een product toe aan de winkelwagen
 const addToCart = () => {
+  if (!isLoggedIn.value) {
+    // Gebruiker is niet ingelogd, toon melding
+    showNotification.value = true;
+    notificationMessage.value = 'Log in to continue.';
+    setTimeout(() => {
+      showNotification.value = false;
+      notificationMessage.value = '';
+    }, 3000);
+    return;
+  }
+
+  // Als de gebruiker is ingelogd, voer normale winkelwagenlogica uit
   const product = {
     size: selectedSize.value,
     color: selectedColor.value,
     quantity: quantity.value,
   };
 
-  // Voeg het nieuwe product toe aan de bestaande winkelwagen
+  // Voeg product toe aan lokale winkelwagen (bijv. via localStorage)
   const storedCart = localStorage.getItem('cart');
   const updatedCart = storedCart ? JSON.parse(storedCart) : [];
   updatedCart.push(product);
-
-  // Update de winkelwagen in localStorage
   localStorage.setItem('cart', JSON.stringify(updatedCart));
 
-  // Toon een notificatie
+  // Toon bevestigingsmelding
   showNotification.value = true;
   notificationMessage.value = 'Product added to your bag!';
-
-  // Verberg de notificatie na 3 seconden
   setTimeout(() => {
     showNotification.value = false;
     notificationMessage.value = '';
@@ -67,9 +66,6 @@ const decreaseQuantity = () => {
     quantity.value--;
   }
 };
-
-// Initialiseer de winkelwagen bij component mount
-initializeCart();
 </script>
 
 <template>
@@ -78,9 +74,6 @@ initializeCart();
       <h1 class="text-2xl font-bold">Flux.be</h1>
       <nav>
         <ul class="flex space-x-4">
-          <li>
-            <router-link to="/bag" class="hover:underline">Bag</router-link>
-          </li>
           <li>
             <router-link to="/login" class="hover:underline">Log In</router-link>
           </li>
@@ -106,7 +99,6 @@ initializeCart();
       </p>
     </main>
 
-    <!-- Hoofdinhoud -->
     <div class="flex flex-grow">
       <main class="flex-grow p-4 bg-white shadow-inner">
         <div class="flex flex-wrap lg:flex-nowrap">
@@ -150,21 +142,21 @@ initializeCart();
             <div class="flex items-baseline my-6">
               <div class="space-x-3 flex text-sm font-medium">
                 <label
-                v-for="color in ['gray', '#8c1db1', 'blue', 'green', 'red']"
-                :key="color"
-              >
-                <input
-                  class="sr-only peer"
-                  type="radio"
-                  :value="color"
-                  v-model="selectedColor"
-                />
-                <div
-                  class="relative w-10 h-10 flex items-center justify-center peer-checked:ring-4 peer-checked:ring-gray-400 rounded-full"
-                  :style="{ backgroundColor: color.startsWith('#') ? color : '' }"
-                  :class="color.startsWith('#') ? '' : `bg-${color}-500`"
-                ></div>
-              </label>
+                  v-for="color in ['gray', '#8c1db1', 'blue', 'green', 'red']"
+                  :key="color"
+                >
+                  <input
+                    class="sr-only peer"
+                    type="radio"
+                    :value="color"
+                    v-model="selectedColor"
+                  />
+                  <div
+                    class="relative w-10 h-10 flex items-center justify-center peer-checked:ring-4 peer-checked:ring-gray-400 rounded-full"
+                    :style="{ backgroundColor: color.startsWith('#') ? color : '' }"
+                    :class="color.startsWith('#') ? '' : `bg-${color}-500`"
+                  ></div>
+                </label>
               </div>
             </div>
 
