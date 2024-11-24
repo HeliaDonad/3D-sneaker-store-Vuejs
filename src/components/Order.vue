@@ -31,7 +31,6 @@ onMounted(() => {
           class="border p-2 my-2 rounded"
         >
           <p><strong>Size:</strong> {{ item.size }}</p>
-          <p><strong>Color:</strong> {{ item.color }}</p>
           <p><strong>Quantity:</strong> {{ item.quantity }}</p>
         </li>
       </ul>

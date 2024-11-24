@@ -1,110 +1,120 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-const cart = ref([]); // Lokale winkelwagen
-const showNotification = ref(false);
-const notificationMessage = ref('');
+const cart = ref([]);
 
-// Functie om de winkelwagen vanuit localStorage te laden
-const loadCart = () => {
+// Initialize cart from localStorage
+const initializeCart = () => {
   const storedCart = localStorage.getItem('cart');
-  cart.value = storedCart ? JSON.parse(storedCart) : []; // Ophalen of initialiseren als lege array
+  cart.value = storedCart ? JSON.parse(storedCart) : [];
 };
 
-// Functie om een product uit de winkelwagen te verwijderen
-const removeItem = (index) => {
-  cart.value.splice(index, 1); // Verwijder het item uit de array
-  localStorage.setItem('cart', JSON.stringify(cart.value)); // Werk de localStorage bij
-  notificationMessage.value = 'Item removed from the bag!';
-  showNotification.value = true;
-  setTimeout(() => (showNotification.value = false), 3000);
+// Update the cart item with new size or quantity
+const updateCartItem = (index, updatedItem) => {
+  cart.value[index] = updatedItem;
+  localStorage.setItem('cart', JSON.stringify(cart.value));
 };
 
-// Functie om een bestelling te plaatsen
-const placeOrder = () => {
-  if (cart.value.length === 0) {
-    notificationMessage.value = 'Your bag is empty!';
-    showNotification.value = true;
-    setTimeout(() => (showNotification.value = false), 3000);
+// Remove item from the cart
+const removeCartItem = (index) => {
+  cart.value.splice(index, 1);
+  localStorage.setItem('cart', JSON.stringify(cart.value));
+};
+
+// Handle placing the order
+const placeOrder = async () => {
+  const orderId = localStorage.getItem('orderId');
+  if (!orderId) {
+    alert('Order ID is missing. Please add items to the cart first.');
     return;
   }
 
-  // Hier plaatsen we de bestelling lokaal
-  const storedOrders = localStorage.getItem('orders');
-  const orders = storedOrders ? JSON.parse(storedOrders) : [];
-  orders.push({
-    id: Date.now().toString(),
-    items: [...cart.value],
-    status: 'Pending',
-  });
+  try {
+    const response = await fetch(`https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${orderId}/complete`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
 
-  localStorage.setItem('orders', JSON.stringify(orders));
-  cart.value = []; // Leeg de winkelwagen
-  localStorage.removeItem('cart'); // Verwijder winkelwagen uit localStorage
+    // Check if the response is OK (status 2xx)
+    if (!response.ok) {
+      // If not OK, handle the error
+      const errorText = await response.text(); // Get the raw response text
+      console.error('Error placing order:', errorText);
+      alert('Failed to place order: ' + errorText);
+      return;
+    }
 
-  notificationMessage.value = 'Order placed successfully!';
-  showNotification.value = true;
-  setTimeout(() => (showNotification.value = false), 3000);
-
-  router.push('/orders'); // Navigeer naar orders pagina
+    // Try to parse the JSON response
+    const result = await response.json();
+    if (result) {
+      // Clear cart from localStorage after successful order
+      localStorage.removeItem('cart');
+      localStorage.removeItem('orderId');
+      alert('Order placed successfully!');
+      cart.value = []; // Update cart in Vue
+    } else {
+      alert('Failed to place order: Invalid response');
+    }
+  } catch (error) {
+    console.error('Error placing order:', error);
+    alert('Error placing order: ' + error.message);
+  }
 };
 
-// Laad de winkelwagen bij het laden van de component
-onMounted(loadCart);
+// Initialize the cart on component mount
+initializeCart();
 </script>
 
 <template>
-  <div class="p-6">
-    <h1 class="text-2xl font-bold mb-4">Your Bag</h1>
+  <div class="min-h-screen bg-gray-100">
+    <header class="bg-gray-500 text-white p-4">
+      <h1 class="text-2xl font-bold">Your Cart</h1>
+    </header>
+    <div class="p-6">
+      <h2 class="text-lg font-semibold">Items in your cart</h2>
+      <ul>
+        <li v-for="(item, index) in cart" :key="index" class="flex items-center justify-between py-2">
+          <div class="flex items-center">
+            <span class="mr-4">{{ item.quantity }}x</span>
+            <span>{{ item.size }}</span>
+          </div>
 
-    <!-- Controleer of de winkelwagen leeg is -->
-    <div v-if="cart.length === 0" class="text-gray-500">
-      Your bag is empty.
-    </div>
+          <!-- Size Options (Editable) -->
+          <div class="flex flex-col space-y-2">
+            <label for="size">Size</label>
+            <select v-model="item.size" @change="updateCartItem(index, item)" class="p-2 border rounded">
+              <option v-for="size in ['36', '37', '38', '39', '40', '41', '42', '43', '44']" :key="size" :value="size">
+                {{ size }}
+              </option>
+            </select>
+          </div>
 
-    <!-- Toon de winkelwagen als er producten zijn -->
-    <ul v-else class="space-y-4 p-2">
-      <li
-        v-for="(item, index) in cart"
-        :key="index"
-        class="border p-4 rounded shadow flex justify-between items-center"
-      >
-        <div>
-          <p><strong>Size:</strong> {{ item.size }}</p>
-          <p><strong>Color:</strong> {{ item.color }}</p>
-          <p><strong>Quantity:</strong> {{ item.quantity }}</p>
-        </div>
-        <button
-          @click="removeItem(index)"
-          class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-        >
-          Remove
-        </button>
-      </li>
-    </ul>
+          <!-- Quantity and customization controls -->
+          <div class="flex space-x-2">
+            <button @click="item.quantity > 1 ? item.quantity-- : item.quantity" class="bg-gray-200 p-1">-</button>
+            <input type="number" v-model="item.quantity" min="1" class="w-12 text-center border border-gray-300 py-1 rounded-md" @change="updateCartItem(index, item)" />
+            <button @click="item.quantity++" class="bg-gray-200 p-1">+</button>
+          </div>
 
-    <!-- Plaats bestelling knop -->
-    <div v-if="cart.length > 0" class="mt-6 p-2">
+          <!-- Remove item button -->
+          <button @click="removeCartItem(index)" class="bg-red-500 text-white p-1 rounded-md">Remove</button>
+        </li>
+      </ul>
       <button
         @click="placeOrder"
-        class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+        class="w-full py-2 mt-4 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-700"
       >
         Place Order
       </button>
-    </div>
-
-    <!-- Notificatie -->
-    <div
-      v-if="showNotification"
-      class="fixed top-0 left-0 right-0 bg-green-500 text-white text-center py-2"
-    >
-      {{ notificationMessage }}
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Voeg optionele stijlen toe als nodig */
+/* Add your custom styles if needed */
 </style>
