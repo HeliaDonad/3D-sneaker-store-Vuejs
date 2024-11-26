@@ -5,8 +5,8 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 const isLoggedIn = ref(false);
 const cart = ref([]); // Local cart
-const selectedSize = ref('36'); // Default size
-const selectedColor = ref('gray'); // Default color
+const selectedSize = ref(''); // Default size
+const selectedColor = ref(''); // Default color
 const quantity = ref(1); // Default quantity
 
 const showNotification = ref(false);
@@ -31,7 +31,20 @@ const initializeCart = () => {
 
 // Add item to cart
 const addToCart = () => {
+  // Use a valid ObjectId for testing
+  const productId = '60d5ec49f1b2c12a4c8e4d5a'; // Replace this with the actual productId
+
+  // Validate and convert productId to a format that your backend expects
+  const isValidObjectId = (id) => /^[a-f\d]{24}$/i.test(id);
+  const validProductId = isValidObjectId(productId) ? productId : null;
+
+  if (!validProductId) {
+    console.error('Invalid productId');
+    return;
+  }
+
   const product = {
+    productId: validProductId, // Use the validated productId here
     size: selectedSize.value,
     color: selectedColor.value,
     quantity: quantity.value,
@@ -52,9 +65,9 @@ const addToCart = () => {
   // Hide notification after 3 seconds
   setTimeout(() => {
     showNotification.value = false;
-    notificationMessage.value = '';
   }, 3000);
 };
+
 
 // Create an order
 const createOrder = async () => {

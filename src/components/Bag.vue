@@ -9,6 +9,12 @@ const cart = ref([]);
 const initializeCart = () => {
   const storedCart = localStorage.getItem('cart');
   cart.value = storedCart ? JSON.parse(storedCart) : [];
+
+  // Debug: Check if cart contains required fields
+  console.log("Cart items loaded:", cart.value);  // Ensure productId exists here
+  cart.value.forEach(item => {
+    console.log(`Item in cart: productId=${item.productId}, size=${item.size}, quantity=${item.quantity}`);
+  });
 };
 
 // Update the cart item with new size or quantity
@@ -23,48 +29,67 @@ const removeCartItem = (index) => {
   localStorage.setItem('cart', JSON.stringify(cart.value));
 };
 
-// Handle placing the order
+// Ensure that the productId is correctly added to the cart when placing the order
 const placeOrder = async () => {
-  const orderId = localStorage.getItem('orderId');
-  if (!orderId) {
-    alert('Order ID is missing. Please add items to the cart first.');
+  if (cart.value.length === 0) {
+    alert('Your cart is empty. Please add items before placing an order.');
+    return;
+  }
+
+  const payload = {
+    contactInfo: {
+      name: "Jane Smith", 
+      email: "janesmith@example.com",
+    },
+    status: "Verzonden",
+    items: cart.value.map(item => ({
+      productId: item.productId,  // Ensure productId exists here
+      size: item.size,
+      quantity: item.quantity,
+    })),
+  };
+
+  // Debug: Check payload before sending
+  console.log("Payload for order:", payload);
+
+  const invalidItems = payload.items.filter(item => !item.productId || !item.size || !item.quantity);
+  if (invalidItems.length > 0) {
+    alert('One or more items in your cart are missing required information (productId, size, or quantity).');
     return;
   }
 
   try {
-    const response = await fetch(`https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${orderId}/complete`, {
+    const response = await fetch('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('token')}`,
       },
+      body: JSON.stringify(payload),
     });
 
-    // Check if the response is OK (status 2xx)
     if (!response.ok) {
-      // If not OK, handle the error
-      const errorText = await response.text(); // Get the raw response text
+      const errorText = await response.text();
       console.error('Error placing order:', errorText);
-      alert('Failed to place order: ' + errorText);
+      alert(`Failed to place order: ${errorText}`);
       return;
     }
 
-    // Try to parse the JSON response
     const result = await response.json();
-    if (result) {
-      // Clear cart from localStorage after successful order
+    if (result.status === 'success') {
       localStorage.removeItem('cart');
-      localStorage.removeItem('orderId');
       alert('Order placed successfully!');
-      cart.value = []; // Update cart in Vue
+      cart.value = [];
     } else {
-      alert('Failed to place order: Invalid response');
+      console.error('Unexpected API response:', result);
+      alert('Failed to place order: ' + result.message || 'Unexpected error.');
     }
   } catch (error) {
     console.error('Error placing order:', error);
     alert('Error placing order: ' + error.message);
   }
 };
+
 
 // Initialize the cart on component mount
 initializeCart();
