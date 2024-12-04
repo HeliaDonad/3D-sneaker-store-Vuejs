@@ -198,16 +198,6 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Color Options -->
-            <div class="flex items-baseline my-6">
-              <div class="space-x-3 flex text-sm font-medium">
-                <label v-for="color in ['gray', '#8c1db1', 'blue', 'green', 'red']" :key="color">
-                  <input class="sr-only peer" type="radio" :value="color" v-model="selectedColor" />
-                  <div class="relative w-10 h-10 flex items-center justify-center peer-checked:ring-4 peer-checked:ring-gray-400 rounded-full" :style="{ backgroundColor: color.startsWith('#') ? color : '' }" :class="color.startsWith('#') ? '' : `bg-${color}-500`"></div>
-                </label>
-              </div>
-            </div>
-
             <!-- Quantity Selector -->
             <div class="my-4">
               <label class="block text-sm font-medium text-gray-800 mb-2">Quantity</label>

@@ -1,44 +1,74 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import axios from 'axios';
 
+// Bestellingen en status
 const orders = ref([]);
+const isAdmin = ref(false); // Bepaalt of de gebruiker admin is
 
-// Functie om orders vanuit localStorage te laden
-const loadOrders = () => {
-  orders.value = JSON.parse(localStorage.getItem('orders')) || [];
-};
-
-// Functie om de status van een bestelling te updaten
-const updateOrderStatus = (id, newStatus) => {
-  const orderIndex = orders.value.findIndex((order) => order.id === id);
-  if (orderIndex !== -1) {
-    orders.value[orderIndex].status = newStatus;
-    localStorage.setItem('orders', JSON.stringify(orders.value));
+// Laad bestellingen
+const loadOrders = async () => {
+  const token = localStorage.getItem('token'); // Haal token op
+  try {
+    const response = await axios.get(
+      isAdmin.value
+        ? 'https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/'
+        : `https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/user`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    orders.value = response.data.data.orders; // Verwerk bestellingen
+  } catch (error) {
+    console.error('Fout bij ophalen van bestellingen:', error.response?.data?.message || error.message);
   }
 };
 
-// Functie om een bestelling te verwijderen
-const deleteOrder = (id) => {
-  orders.value = orders.value.filter((order) => order.id !== id);
-  localStorage.setItem('orders', JSON.stringify(orders.value));
+// Update bestelstatus
+const updateOrderStatus = async (orderId, newStatus) => {
+  const token = localStorage.getItem('token');
+  try {
+    await axios.put(
+      `https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${orderId}`,
+      { status: newStatus },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    loadOrders(); // Bestellingen opnieuw laden
+  } catch (error) {
+    console.error('Fout bij bijwerken van bestelling:', error.response?.data?.message || error.message);
+  }
 };
 
-// Bij component mount orders laden
-onMounted(() => {
-  loadOrders();
+// Verwijder een bestelling
+const deleteOrder = async (orderId) => {
+  const token = localStorage.getItem('token');
+  try {
+    await axios.delete(`https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${orderId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    loadOrders(); // Bestellingen opnieuw laden
+  } catch (error) {
+    console.error('Fout bij verwijderen van bestelling:', error.response?.data?.message || error.message);
+  }
+};
+
+// Bij component mount: controleer adminstatus en laad bestellingen
+onMounted(async () => {
+  const token = localStorage.getItem('token');
+  const userInfo = JSON.parse(atob(token.split('.')[1])); // Decode token om adminstatus te controleren
+  isAdmin.value = userInfo.isAdmin;
+  await loadOrders();
 });
 </script>
 
 <template>
   <div class="p-6">
-    <h1 class="text-2xl font-bold mb-4">All Orders</h1>
+    <h1 class="text-2xl font-bold mb-4">{{ isAdmin ? 'All Orders' : 'My Orders' }}</h1>
 
-    <!-- Geen orders gevonden -->
+    <!-- Geen bestellingen -->
     <div v-if="orders.length === 0" class="text-gray-500">
       No orders found.
     </div>
 
-    <!-- Toon alle orders -->
+    <!-- Bestellingen weergeven -->
     <ul v-else class="space-y-4">
       <li
         v-for="order in orders"
@@ -47,24 +77,11 @@ onMounted(() => {
       >
         <div>
           <p><strong>Order ID:</strong> {{ order.id }}</p>
-          <p>
-            <strong>Status: </strong>
-            <span
-              :class="{
-                'text-yellow-500': order.status === 'Pending',
-                'text-blue-500': order.status === 'In Production',
-                'text-green-500': order.status === 'Shipped'
-              }"
-            >
-              {{ order.status }}
-            </span>
-          </p>
-          <router-link :to="`/orders/${order.id}`" class="text-blue-500 underline">
-            View Details
-          </router-link>
+          <p><strong>Status:</strong> {{ order.status }}</p>
+          <p v-if="isAdmin"><strong>User:</strong> {{ order.user.name }} ({{ order.user.email }})</p>
         </div>
 
-        <!-- Status update knoppen -->
+        <!-- Acties -->
         <div class="flex space-x-2">
           <button
             v-if="order.status === 'Pending'"
@@ -93,7 +110,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* Basisstijl voor knoppen */
 button {
   font-weight: bold;
 }
