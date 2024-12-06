@@ -1,28 +1,30 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 
-const orders = ref([]); // Lijst van orders
-const error = ref(''); // Eventuele foutmeldingen
-const isAdmin = ref(false); // Controleer of gebruiker admin is
+const orders = ref([]); // Orders list
+const error = ref(''); // Error message
+const isAdmin = ref(false); // Check if user is admin
+const totalOrders = ref(0); // Total orders counter
+const socket = io('http://localhost:3000'); // Connect to Socket.IO server
 
-// Functie om te controleren of de gebruiker admin is
+// Check if user is admin
 const checkAdminStatus = async () => {
   const token = localStorage.getItem('token');
   if (token) {
     try {
       const decoded = JSON.parse(atob(token.split('.')[1]));
-      isAdmin.value = decoded.isAdmin || false; // Controleer of de gebruiker admin is
+      isAdmin.value = decoded.isAdmin || false;
     } catch {
       isAdmin.value = false;
     }
   }
 };
 
-// Functie om orders van de back-end op te halen
+// Fetch orders from backend
 const fetchOrders = async () => {
-  const token = localStorage.getItem('token'); // Haal het token op uit localStorage
-
+  const token = localStorage.getItem('token');
   if (!token) {
     error.value = 'You are not logged in. Please log in to view orders.';
     return;
@@ -31,20 +33,36 @@ const fetchOrders = async () => {
   try {
     const response = await axios.get('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders', {
       headers: {
-        Authorization: `Bearer ${token}`, // Voeg het token toe aan de header
+        Authorization: `Bearer ${token}`,
       },
     });
-    orders.value = response.data.data; // Wijs de ontvangen data toe
+    orders.value = response.data.data;
+    totalOrders.value = orders.value.length;
   } catch (err) {
     console.error('Error fetching orders:', err);
     error.value = 'Failed to fetch orders. Please try again later.';
   }
 };
 
-// Functie om de status van een bestelling te updaten
+// Setup socket listeners for live updates
+const setupSocketListeners = () => {
+  socket.on('orderUpdate', (update) => {
+    if (update.type === 'new') {
+      orders.value.push(update.data);
+      totalOrders.value++;
+    } else if (update.type === 'update') {
+      const index = orders.value.findIndex((order) => order._id === update.data._id);
+      if (index !== -1) orders.value[index] = update.data;
+    } else if (update.type === 'delete') {
+      orders.value = orders.value.filter((order) => order._id !== update.data);
+      totalOrders.value--;
+    }
+  });
+};
+
+// Update order status
 const updateOrderStatus = async (orderId, newStatus) => {
   const token = localStorage.getItem('token');
-
   if (!isAdmin.value) {
     alert('Only admins can update order status.');
     return;
@@ -62,10 +80,7 @@ const updateOrderStatus = async (orderId, newStatus) => {
     );
 
     if (response.data.status === 'success') {
-      const orderIndex = orders.value.findIndex(order => order._id === orderId);
-      if (orderIndex !== -1) {
-        orders.value[orderIndex].status = newStatus;
-      }
+      socket.emit('orderUpdated', response.data.data); // Trigger socket update
       alert('Order status updated successfully!');
     } else {
       alert('Failed to update order status.');
@@ -76,10 +91,9 @@ const updateOrderStatus = async (orderId, newStatus) => {
   }
 };
 
-// Functie om een bestelling te verwijderen
+// Delete order
 const deleteOrder = async (orderId) => {
   const token = localStorage.getItem('token');
-
   if (!isAdmin.value) {
     alert('Only admins can delete orders.');
     return;
@@ -96,7 +110,7 @@ const deleteOrder = async (orderId) => {
     );
 
     if (response.data.status === 'success') {
-      orders.value = orders.value.filter(order => order._id !== orderId);
+      socket.emit('orderDeleted', orderId); // Trigger socket delete
       alert('Order deleted successfully!');
     } else {
       alert(`Failed to delete order: ${response.data.message}`);
@@ -107,33 +121,34 @@ const deleteOrder = async (orderId) => {
   }
 };
 
-// Haal orders op bij het laden van de component
+// Mount and unmount
 onMounted(() => {
   checkAdminStatus();
   fetchOrders();
+  setupSocketListeners();
+});
+
+onUnmounted(() => {
+  socket.disconnect();
 });
 </script>
 
 <template>
   <div class="p-6">
-    <h1 v-if="isAdmin" class="text-2xl font-bold mb-4">All Orders (Admin)</h1>
+    <h1 v-if="isAdmin" class="text-2xl font-bold mb-4">All Orders (Admin) - Total: {{ totalOrders }}</h1>
     <h1 v-else class="text-2xl font-bold mb-4">My Orders</h1>
 
-    <!-- Foutmelding -->
+    <!-- Error message -->
     <div v-if="error" class="text-red-500 mb-4">{{ error }}</div>
 
-    <!-- Geen orders gevonden -->
+    <!-- No orders -->
     <div v-if="orders.length === 0 && !error" class="text-gray-500">
       No orders found.
     </div>
 
-    <!-- Toon alle orders -->
+    <!-- Orders list -->
     <ul v-else class="space-y-4">
-      <li
-        v-for="order in orders"
-        :key="order._id"
-        class="border p-4 rounded shadow flex flex-col space-y-4"
-      >
+      <li v-for="order in orders" :key="order._id" class="border p-4 rounded shadow flex flex-col space-y-4">
         <div>
           <p><strong>Order ID:</strong> {{ order._id }}</p>
           <p>
