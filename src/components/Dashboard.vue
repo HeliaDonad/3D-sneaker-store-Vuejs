@@ -132,14 +132,22 @@ onMounted(() => {
 <template>
   <div class="min-h-screen bg-gray-100">
     <header class="bg-gray-500 text-white p-4 flex justify-between items-center">
-      <h1 class="text-2xl font-bold">Flux.be</h1>
+      <h1 class="text-2xl font-bold">SWEAR</h1>
       <nav>
         <ul class="flex space-x-4">
-          <li v-if="!isLoggedIn">
-            <router-link to="/bag" class="hover:underline">Bag</router-link>
-          </li>
-          <li v-if="isLoggedIn">
-            <router-link to="/bag" class="hover:underline">Bag</router-link>
+          <li>
+            <button
+              v-if="!isLoggedIn"
+              @click="() => router.push('/login')"
+              class="hover:underline"
+            >
+              Bag
+            </button>
+            <div v-else>
+              <button @click="() => router.push('/bag')" class="hover:underline">
+                Bag
+              </button>
+            </div>
           </li>
           <li>
             <button
