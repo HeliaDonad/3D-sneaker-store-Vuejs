@@ -4,65 +4,66 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const cart = ref([]);
-const showPopup = ref(false); // Popup voor gebruikersgegevens
-const guestName = ref('');
-const guestEmail = ref('');
-const guestPhone = ref('');
 
-// Initialiseer winkelwagen vanuit localStorage
+// Initialize cart from localStorage
 const initializeCart = () => {
   const storedCart = localStorage.getItem('cart');
   cart.value = storedCart ? JSON.parse(storedCart) : [];
+
+  // Debug: Check if cart contains required fields
+  console.log("Cart items loaded:", cart.value);  // Ensure productId exists here
+  cart.value.forEach(item => {
+    console.log(`Item in cart: productId=${item.productId}, size=${item.size}, quantity=${item.quantity}`);
+  });
 };
 
-// Werk een cart-item bij
+// Update the cart item with new size or quantity
 const updateCartItem = (index, updatedItem) => {
   cart.value[index] = updatedItem;
   localStorage.setItem('cart', JSON.stringify(cart.value));
 };
 
-// Verwijder een item uit de winkelwagen
+// Remove item from the cart
 const removeCartItem = (index) => {
   cart.value.splice(index, 1);
   localStorage.setItem('cart', JSON.stringify(cart.value));
 };
 
-// Plaats een bestelling
+// Ensure that the productId is correctly added to the cart when placing the order
 const placeOrder = async () => {
   if (cart.value.length === 0) {
     alert('Your cart is empty. Please add items before placing an order.');
     return;
   }
 
-  // Toon popup om gegevens in te vullen
-  showPopup.value = true;
-};
-
-// Verstuur bestelling na invoer van gebruikersgegevens
-const submitGuestDetails = async () => {
-  if (!guestName.value || !guestEmail.value || !guestPhone.value) {
-    alert('Please fill in all required fields.');
-    return;
-  }
-
   const payload = {
     contactInfo: {
-      name: guestName.value,
-      email: guestEmail.value,
-      phone: guestPhone.value,
+      name: "Jane Smith", 
+      email: "janesmith@example.com",
     },
+    status: "Verzonden",
     items: cart.value.map(item => ({
-      productId: item.productId,
+      productId: item.productId,  // Ensure productId exists here
       size: item.size,
       quantity: item.quantity,
     })),
   };
+
+  // Debug: Check payload before sending
+  console.log("Payload for order:", payload);
+
+  const invalidItems = payload.items.filter(item => !item.productId || !item.size || !item.quantity);
+  if (invalidItems.length > 0) {
+    alert('One or more items in your cart are missing required information (productId, size, or quantity).');
+    return;
+  }
 
   try {
     const response = await fetch('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
       },
       body: JSON.stringify(payload),
     });
@@ -77,8 +78,8 @@ const submitGuestDetails = async () => {
     const result = await response.json();
     if (result.status === 'success') {
       localStorage.removeItem('cart');
-      cart.value = [];
       alert('Order placed successfully!');
+      cart.value = [];
     } else {
       console.error('Unexpected API response:', result);
       alert('Failed to place order: ' + result.message || 'Unexpected error.');
@@ -86,17 +87,16 @@ const submitGuestDetails = async () => {
   } catch (error) {
     console.error('Error placing order:', error);
     alert('Error placing order: ' + error.message);
-  } finally {
-    showPopup.value = false; // Sluit popup na afronding
   }
 };
 
-// Initialiseer de winkelwagen bij laden van de component
+
+// Initialize the cart on component mount
 initializeCart();
 </script>
 
 <template>
- <div class="min-h-screen bg-gray-100">
+  <div class="min-h-screen bg-gray-100">
     <header class="bg-gray-500 text-white p-4">
       <h1 class="text-2xl font-bold">Your Cart</h1>
     </header>
@@ -109,6 +109,7 @@ initializeCart();
             <span>{{ item.size }}</span>
           </div>
 
+          <!-- Size Options (Editable) -->
           <div class="flex flex-col space-y-2">
             <label for="size">Size</label>
             <select v-model="item.size" @change="updateCartItem(index, item)" class="p-2 border rounded">
@@ -118,40 +119,23 @@ initializeCart();
             </select>
           </div>
 
+          <!-- Quantity and customization controls -->
           <div class="flex space-x-2">
             <button @click="item.quantity > 1 ? item.quantity-- : item.quantity" class="bg-gray-200 p-1">-</button>
             <input type="number" v-model="item.quantity" min="1" class="w-12 text-center border border-gray-300 py-1 rounded-md" @change="updateCartItem(index, item)" />
             <button @click="item.quantity++" class="bg-gray-200 p-1">+</button>
           </div>
 
+          <!-- Remove item button -->
           <button @click="removeCartItem(index)" class="bg-red-500 text-white p-1 rounded-md">Remove</button>
         </li>
       </ul>
-      <button @click="placeOrder" class="w-full py-2 mt-4 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-700">
+      <button
+        @click="placeOrder"
+        class="w-full py-2 mt-4 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-700"
+      >
         Place Order
       </button>
-    </div>
-
-    <!-- Popup voor gebruikersgegevens -->
-    <div v-if="showPopup" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
-      <div class="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 class="text-xl font-bold mb-4">Enter Your Details</h2>
-        <form @submit.prevent="submitGuestDetails">
-          <div class="mb-4">
-            <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-            <input v-model="guestName" id="name" type="text" required class="w-full border rounded-lg px-3 py-2" />
-          </div>
-          <div class="mb-4">
-            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-            <input v-model="guestEmail" id="email" type="email" required class="w-full border rounded-lg px-3 py-2" />
-          </div>
-          <div class="mb-4">
-            <label for="phone" class="block text-sm font-medium text-gray-700">Phone</label>
-            <input v-model="guestPhone" id="phone" type="tel" required class="w-full border rounded-lg px-3 py-2" />
-          </div>
-          <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg">Submit</button>
-        </form>
-      </div>
     </div>
   </div>
 </template>
