@@ -1,132 +1,164 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { io } from 'socket.io-client';
 
 const router = useRouter();
 const isLoggedIn = ref(false);
-const cart = ref([]); // Local cart
-const selectedSize = ref(''); // Default size
-const selectedColor = ref(''); // Default color
-const quantity = ref(1); // Default quantity
+const cart = ref([]); // Winkelwagen
+const selectedSize = ref(''); // Gekozen maat
+const selectedColor = ref(''); // Gekozen kleur
+const quantity = ref(1); // Aantal stuks
+const products = ref([]); // Productgegevens van de backend
 
+// Voor notificaties en popup
 const showNotification = ref(false);
 const notificationMessage = ref('');
+const showPopup = ref(false);
+const guestName = ref('');
+const guestEmail = ref('');
+const guestPhone = ref(''); // Telefoonnummer van de gast
 
-// Check login status
+// WebSocket voor live updates (admin-only)
+const socket = ref(null);
+
+// Controleer loginstatus
 const checkLoginStatus = () => {
   const token = localStorage.getItem('token');
-  isLoggedIn.value = !!token;
+  isLoggedIn.value = !!token; // Controleer op aanwezigheid van token
 };
 
-// Initialize the cart from localStorage
+// Haal producten op van de backend
+const fetchProducts = async () => {
+  try {
+    const response = await fetch('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/products');
+    if (!response.ok) {
+      throw new Error(`Failed to fetch products: ${response.statusText}`);
+    }
+    const result = await response.json();
+    products.value = result.data; // Opslaan van producten
+    console.log('Products fetched:', products.value); // Debugging
+  } catch (error) {
+    console.error('Error fetching products:', error.message);
+  }
+};
+
+
+// Initialiseer winkelwagen
 const initializeCart = () => {
-  const storedCart = localStorage.getItem('cart');
-  cart.value = storedCart ? JSON.parse(storedCart) : [];
-
-  // Ensure there is an orderId in localStorage
-  if (!localStorage.getItem('orderId')) {
-    localStorage.setItem('orderId', new Date().getTime().toString()); // Generate a unique orderId
-  }
+  cart.value = [];
 };
 
-// Add item to cart
-const addToCart = () => {
-  // Use a valid ObjectId for testing
-  const productId = '60d5ec49f1b2c12a4c8e4d5a'; // Replace this with the actual productId
-
-  // Validate and convert productId to a format that your backend expects
-  const isValidObjectId = (id) => /^[a-f\d]{24}$/i.test(id);
-  const validProductId = isValidObjectId(productId) ? productId : null;
-
-  if (!validProductId) {
-    console.error('Invalid productId');
-    return;
-  }
-
-  const product = {
-    productId: validProductId, // Use the validated productId here
+// Voeg een product toe aan de winkelwagen
+const addToCart = (product) => {
+  const cartItem = {
+    productId: product._id,
+    name: product.name,
+    price: product.price,
     size: selectedSize.value,
-    color: selectedColor.value,
     quantity: quantity.value,
   };
 
-  // Retrieve the current cart from localStorage
-  const storedCart = localStorage.getItem('cart');
-  const updatedCart = storedCart ? JSON.parse(storedCart) : [];
-  updatedCart.push(product);
-
-  // Update cart in localStorage
-  localStorage.setItem('cart', JSON.stringify(updatedCart));
-
-  // Show notification
+  cart.value.push(cartItem);
   showNotification.value = true;
-  notificationMessage.value = 'Product added to your bag!';
+  notificationMessage.value = `${product.name} added to your bag!`;
 
-  // Hide notification after 3 seconds
-  setTimeout(() => {
-    showNotification.value = false;
-  }, 3000);
+  setTimeout(() => (showNotification.value = false), 3000);
 };
 
 
-// Create an order
-const createOrder = async () => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    notificationMessage.value = 'You need to log in first!';
-    showNotification.value = true;
-    return;
+// Open popup voor niet-ingelogde gebruikers
+const openPopup = () => {
+  if (!isLoggedIn.value) {
+    showPopup.value = true;
   }
+};
 
-  const cartData = cart.value;
-  console.log('Cart Data:', cartData); // Debugging line
-
-  try {
-    const response = await fetch('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        items: cartData,
-      }),
-    });
-
-    const result = await response.json();
-    console.log('API Response:', result); // Debugging line
-
-    if (!response.ok) {
-      throw new Error(result.message || 'Failed to create order');
-    }
-
-    // If the order is successfully created, clear the cart
-    localStorage.removeItem('cart');
-    cart.value = [];
-
-    notificationMessage.value = 'Order placed successfully!';
+// Verstuur gastgegevens en plaats bestelling
+const submitGuestDetails = () => {
+  if (guestName.value && guestEmail.value && guestPhone.value) {
+    createOrder(guestName.value, guestEmail.value, guestPhone.value); // Voeg phone toe
+    showPopup.value = false; // Sluit de popup
+  } else {
+    notificationMessage.value = 'Please fill in all required fields.';
     showNotification.value = true;
 
-    // Hide notification after 3 seconds
     setTimeout(() => {
       showNotification.value = false;
-      notificationMessage.value = '';
     }, 3000);
-
-    router.push('/orders'); // Redirect to orders page
-  } catch (error) {
-    console.error('Error creating order:', error);
-    notificationMessage.value = `Error: ${error.message}`;
-    showNotification.value = true;
-    setTimeout(() => (showNotification.value = false), 3000);
   }
 };
 
-// Initialize cart when the component is mounted
-onMounted(() => {
+// Bestelling maken
+const createOrder = async (name, email, phone) => {
+  console.log('Creating order with:', { name, email, phone, items: cart.value });
+
+  try {
+    const response = await fetch(
+      'https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contactInfo: { name, email, phone }, // Gebruikersgegevens
+          items: cart.value, // Producten in de winkelwagen
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    console.log('Order created:', result);
+    notificationMessage.value = 'Order created successfully!';
+    showNotification.value = true;
+
+    setTimeout(() => {
+      showNotification.value = false;
+    }, 3000);
+
+    // Cart leegmaken na succesvolle bestelling
+    cart.value = [];
+  } catch (error) {
+    console.error('Error creating order:', error.message);
+    notificationMessage.value = `Error: ${error.message}`;
+    showNotification.value = true;
+
+    setTimeout(() => {
+      showNotification.value = false;
+    }, 3000);
+  }
+};
+
+// WebSocket configuratie
+const setupWebSocket = () => {
+  socket.value = io('https://threed-sneaker-store-seda-ezzat-helia.onrender.com');
+
+  socket.value.on('connect', () => {
+    console.log('WebSocket connected.');
+  });
+
+  socket.value.on('orderPlaced', (newOrder) => {
+    console.log('New order placed:', newOrder);
+  });
+
+  socket.value.on('connect_error', (err) => {
+    console.error('WebSocket connection error:', err.message);
+  });
+};
+
+// Initialisatie bij laden van component
+onMounted(async () => {
   checkLoginStatus();
   initializeCart();
+  await fetchProducts(); // Zorg ervoor dat de producten worden opgehaald
+  setupWebSocket();
 });
+
 </script>
 
 <template>
@@ -135,12 +167,7 @@ onMounted(() => {
       <h1 class="text-2xl font-bold">Flux.be</h1>
       <nav>
         <ul class="flex space-x-4">
-          <li v-if="!isLoggedIn">
-            <router-link to="/bag" class="hover:underline">Bag</router-link>
-          </li>
-          <li v-if="isLoggedIn">
-            <router-link to="/bag" class="hover:underline">Bag</router-link>
-          </li>
+          <li><router-link to="/bag" class="hover:underline">Bag</router-link></li>
           <li>
             <button
               v-if="!isLoggedIn"
@@ -149,11 +176,13 @@ onMounted(() => {
             >
               Account
             </button>
-            <div v-else>
-              <button @click="() => router.push('/account')" class="hover:underline">
-                Account
-              </button>
-            </div>
+            <button
+              v-else
+              @click="() => router.push('/account')"
+              class="hover:underline"
+            >
+              Account
+            </button>
           </li>
         </ul>
       </nav>
@@ -164,65 +193,78 @@ onMounted(() => {
       {{ notificationMessage }}
     </div>
 
-    <main class="p-6">
-      <h2 v-if="!isLoggedIn">Welcome to the 3D Sneaker Store! Please log in to personalize your experience.</h2>
-      <h2 v-else>Welcome back! Manage your account and explore your dashboard.</h2>
-    </main>
+    <!-- Popup -->
+    <div v-if="showPopup" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+        <h2 class="text-xl font-bold mb-4">Enter Your Details</h2>
+        <form @submit.prevent="submitGuestDetails">
+          <div class="mb-4">
+            <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+            <input v-model="guestName" id="name" type="text" required class="w-full border rounded-lg px-3 py-2" />
+          </div>
+          <div class="mb-4">
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <input v-model="guestEmail" id="email" type="email" required class="w-full border rounded-lg px-3 py-2" />
+          </div>
+          <div class="mb-4">
+            <label for="phone" class="block text-sm font-medium text-gray-700">Phone</label>
+            <input
+              v-model="guestPhone"
+              id="phone"
+              type="tel"
+              required
+              class="w-full border rounded-lg px-3 py-2"
+            />
+          </div>
+          <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg">Submit</button>
+        </form>
+      </div>
+    </div>
 
     <!-- Main Content -->
-    <div class="flex flex-grow">
-      <main class="flex-grow p-4 bg-white shadow-inner">
-        <div class="flex flex-wrap lg:flex-nowrap">
-          <!-- Product Image -->
-          <div class="flex-none w-full lg:w-3/4 mb-4 relative z-10">
-            <div class="w-full h-96 bg-gray-200">
-              <img src="#" alt="Product" class="absolute inset-0 w-full h-full object-cover" />
-            </div>
+    <main class="p-6">
+      <div class="flex flex-wrap lg:flex-nowrap">
+        <!-- Placeholder voor afbeelding -->
+        <div class="w-full lg:w-1/2 bg-gray-200 flex items-center justify-center h-64">
+          <p class="text-gray-600">Image Placeholder (to be replaced with Three.js)</p>
+        </div>
+
+        <!-- Product Configuratie -->
+        <form @submit.prevent="openPopup" class="lg:w-1/2 p-4">
+          <h1 class="text-2xl font-bold">Create Your Own Sneaker</h1>
+          <p class="text-gray-600 mb-4">Prijs: €89.00</p>
+
+          <!-- Size Selector -->
+          <label for="size" class="block text-sm font-medium">Size</label>
+          <div class="flex space-x-2 mb-4">
+            <label v-for="size in ['36', '37', '38', '39', '40', '41', '42', '43', '44']" :key="size">
+              <input type="radio" :value="size" v-model="selectedSize" class="hidden peer" />
+              <div class="w-10 h-10 border rounded-lg flex items-center justify-center peer-checked:bg-gray-800 peer-checked:text-white">
+                {{ size }}
+              </div>
+            </label>
           </div>
 
-          <!-- Product Configuration Form -->
-          <form @submit.prevent="addToCart" class="flex-auto pl-6">
-            <div class="relative flex flex-wrap items-baseline pb-6">
-              <h1 class="relative w-full flex-none mb-2 text-2xl font-semibold text-gray-800">Create your own Sneaker</h1>
-              <div class="relative text-lg text-gray-500">€89.00</div>
-              <div class="relative uppercase text-gray-400 ml-3">In stock</div>
-            </div>
+          <!-- Quantity Selector -->
+          <label for="quantity" class="block text-sm font-medium">Quantity</label>
+          <div class="flex items-center space-x-2 mb-4">
+            <button type="button" @click="quantity > 1 && quantity--" class="px-2 py-1 border rounded">-</button>
+            <input type="number" v-model="quantity" min="1" class="w-12 text-center border py-1 rounded" />
+            <button type="button" @click="quantity++" class="px-2 py-1 border rounded">+</button>
+          </div>
 
-            <!-- Size Options -->
-            <div class="flex flex-wrap my-4">
-              <div class="flex flex-wrap text-sm font-medium">
-                <label v-for="size in ['36', '37', '38', '39', '40', '41', '42', '43', '44']" :key="size" class="w-1/5 mb-2">
-                  <input class="sr-only peer" type="radio" :value="size" v-model="selectedSize" />
-                  <div class="relative w-10 h-10 flex items-center justify-center text-black peer-checked:bg-black peer-checked:text-white">{{ size }}</div>
-                </label>
-              </div>
-            </div>
-
-            <!-- Quantity Selector -->
-            <div class="my-4">
-              <label class="block text-sm font-medium text-gray-800 mb-2">Quantity</label>
-              <div class="flex items-center space-x-2">
-                <button type="button" @click="quantity > 1 ? quantity-- : quantity" class="text-gray-500 border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-200">-</button>
-                <input type="number" v-model="quantity" min="1" class="w-12 text-center border border-gray-300 py-1 rounded-md" />
-                <button type="button" @click="quantity++" class="text-gray-500 border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-200">+</button>
-              </div>
-            </div>
-
-            <!-- Add to Cart Button -->
-            <div class="my-4">
-              <button type="submit" class="w-full py-2 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-700">Add to Cart</button>
-            </div>
-          </form>
-        </div>
-      </main>
-    </div>
+          <!-- Submit Button -->
+<!-- Knop voor toevoegen aan winkelwagen -->
+<button
+  v-if="products.length > 0"
+  type="button"
+  @click="addToCart(products[0]?._id)"
+  class="w-full bg-gray-800 text-white py-2 rounded-lg"
+>
+  Add to Cart
+</button>
+        </form>
+      </div>
+    </main>
   </div>
 </template>
-
-<style scoped>
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-</style>

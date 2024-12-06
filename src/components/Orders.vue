@@ -1,29 +1,50 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import axios from 'axios';
 
 const orders = ref([]);
+const errorMessage = ref('');
 
 // Functie om orders vanuit localStorage te laden
-const loadOrders = () => {
-  orders.value = JSON.parse(localStorage.getItem('orders')) || [];
-};
-
-// Functie om de status van een bestelling te updaten
-const updateOrderStatus = (id, newStatus) => {
-  const orderIndex = orders.value.findIndex((order) => order.id === id);
-  if (orderIndex !== -1) {
-    orders.value[orderIndex].status = newStatus;
-    localStorage.setItem('orders', JSON.stringify(orders.value));
+const loadOrders = async () => {
+  try {
+    const response = await axios.get('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders');
+    orders.value = response.data;
+  } catch (error) {
+    console.error('Error loading orders:', error);
+    errorMessage.value = 'Failed to load orders. Please try again later.';
   }
 };
 
+// Functie om de status van een bestelling te updaten
+const updateOrderStatus = async (id, newStatus) => {
+  try {
+    const response = await axios.patch(`https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${id}`, {
+      status: newStatus,
+    });
+    // Update lokaal de orderstatus
+    const orderIndex = orders.value.findIndex((order) => order.id === id);
+    if (orderIndex !== -1) {
+      orders.value[orderIndex].status = response.data.status;
+    }
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    errorMessage.value = 'Failed to update order status. Please try again.';
+  }
+};
 // Functie om een bestelling te verwijderen
-const deleteOrder = (id) => {
-  orders.value = orders.value.filter((order) => order.id !== id);
-  localStorage.setItem('orders', JSON.stringify(orders.value));
+const deleteOrder = async (id) => {
+  try {
+    await axios.delete(`https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${id}`);
+    // Verwijder lokaal de order
+    orders.value = orders.value.filter((order) => order.id !== id);
+  } catch (error) {
+    console.error('Error deleting order:', error);
+    errorMessage.value = 'Failed to delete order. Please try again.';
+  }
 };
 
-// Bij component mount orders laden
+// Laad orders bij het mounten van de component
 onMounted(() => {
   loadOrders();
 });
