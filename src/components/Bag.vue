@@ -7,7 +7,6 @@ const cart = ref([]);
 const showPopup = ref(false); // Popup voor gebruikersgegevens
 const guestName = ref('');
 const guestEmail = ref('');
-const guestPhone = ref('');
 
 // Initialiseer winkelwagen vanuit localStorage
 const initializeCart = () => {
@@ -39,7 +38,7 @@ const placeOrder = async () => {
 };
 
 const submitGuestDetails = async () => {
-  if (!guestName.value || !guestEmail.value || !guestPhone.value) {
+  if (!guestName.value || !guestEmail.value) {
     alert('Please fill in all required fields.');
     return;
   }
@@ -48,7 +47,6 @@ const submitGuestDetails = async () => {
     contactInfo: {
       name: guestName.value,
       email: guestEmail.value,
-      phone: guestPhone.value,
     },
     items: cart.value.map(item => ({
       productId: item.productId,
@@ -178,10 +176,6 @@ initializeCart();
           <div class="mb-4">
             <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
             <input v-model="guestEmail" id="email" type="email" required class="w-full border rounded-lg px-3 py-2" />
-          </div>
-          <div class="mb-4">
-            <label for="phone" class="block text-sm font-medium text-gray-700">Phone</label>
-            <input v-model="guestPhone" id="phone" type="tel" required class="w-full border rounded-lg px-3 py-2" />
           </div>
           <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg">Submit</button>
         </form>

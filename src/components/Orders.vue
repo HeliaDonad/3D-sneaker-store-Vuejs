@@ -124,7 +124,6 @@ onMounted(fetchOrders);
           <h3 class="text-lg font-semibold">Contact Info</h3>
           <p><strong>Name:</strong> {{ order.contactInfo?.name }}</p>
           <p><strong>Email:</strong> {{ order.contactInfo?.email }}</p>
-          <p><strong>Phone:</strong> {{ order.contactInfo?.phone }}</p>
         </div>
 
         <!-- Toon items -->
