@@ -4,10 +4,29 @@ import axios from 'axios';
 
 const orders = ref([]); // Lijst van orders
 const error = ref(''); // Eventuele foutmeldingen
+const isAdmin = ref(false); // Controleer of gebruiker admin is
+
+// Functie om te controleren of de gebruiker admin is
+const checkAdminStatus = async () => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const decoded = JSON.parse(atob(token.split('.')[1]));
+      isAdmin.value = decoded.isAdmin || false; // Controleer of de gebruiker admin is
+    } catch {
+      isAdmin.value = false;
+    }
+  }
+};
 
 // Functie om orders van de back-end op te halen
 const fetchOrders = async () => {
   const token = localStorage.getItem('token'); // Haal het token op uit localStorage
+
+  if (!token) {
+    error.value = 'You are not logged in. Please log in to view orders.';
+    return;
+  }
 
   try {
     const response = await axios.get('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders', {
@@ -26,6 +45,11 @@ const fetchOrders = async () => {
 const updateOrderStatus = async (orderId, newStatus) => {
   const token = localStorage.getItem('token');
 
+  if (!isAdmin.value) {
+    alert('Only admins can update order status.');
+    return;
+  }
+
   try {
     const response = await axios.patch(
       `https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${orderId}`,
@@ -38,7 +62,6 @@ const updateOrderStatus = async (orderId, newStatus) => {
     );
 
     if (response.data.status === 'success') {
-      // Werk de status lokaal bij
       const orderIndex = orders.value.findIndex(order => order._id === orderId);
       if (orderIndex !== -1) {
         orders.value[orderIndex].status = newStatus;
@@ -55,20 +78,24 @@ const updateOrderStatus = async (orderId, newStatus) => {
 
 // Functie om een bestelling te verwijderen
 const deleteOrder = async (orderId) => {
-  const token = localStorage.getItem('token'); // Haal het token op uit localStorage
+  const token = localStorage.getItem('token');
+
+  if (!isAdmin.value) {
+    alert('Only admins can delete orders.');
+    return;
+  }
 
   try {
     const response = await axios.delete(
       `https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${orderId}`,
       {
         headers: {
-          Authorization: `Bearer ${token}`, // Voeg token toe aan de header
+          Authorization: `Bearer ${token}`,
         },
       }
     );
 
     if (response.data.status === 'success') {
-      // Verwijder de order lokaal
       orders.value = orders.value.filter(order => order._id !== orderId);
       alert('Order deleted successfully!');
     } else {
@@ -81,12 +108,16 @@ const deleteOrder = async (orderId) => {
 };
 
 // Haal orders op bij het laden van de component
-onMounted(fetchOrders);
+onMounted(() => {
+  checkAdminStatus();
+  fetchOrders();
+});
 </script>
 
 <template>
   <div class="p-6">
-    <h1 class="text-2xl font-bold mb-4">All Orders</h1>
+    <h1 v-if="isAdmin" class="text-2xl font-bold mb-4">All Orders (Admin)</h1>
+    <h1 v-else class="text-2xl font-bold mb-4">My Orders</h1>
 
     <!-- Foutmelding -->
     <div v-if="error" class="text-red-500 mb-4">{{ error }}</div>
@@ -111,7 +142,7 @@ onMounted(fetchOrders);
               :class="{
                 'text-yellow-500': order.status === 'Pending',
                 'text-blue-500': order.status === 'In Production',
-                'text-green-500': order.status === 'Shipped'
+                'text-green-500': order.status === 'Shipped',
               }"
             >
               {{ order.status }}
@@ -119,27 +150,25 @@ onMounted(fetchOrders);
           </p>
         </div>
 
-        <!-- Toon contactinformatie -->
+        <!-- Contact Info -->
         <div>
           <h3 class="text-lg font-semibold">Contact Info</h3>
           <p><strong>Name:</strong> {{ order.contactInfo?.name }}</p>
           <p><strong>Email:</strong> {{ order.contactInfo?.email }}</p>
         </div>
 
-        <!-- Toon items -->
+        <!-- Items -->
         <div>
           <h3 class="text-lg font-semibold">Items</h3>
           <ul>
-            <li v-for="item in order.items" :key="item.productId" class="flex justify-between">
-              <span>Product ID: {{ item.productId }}</span>
-              <span>Size: {{ item.size }}</span>
-              <span>Quantity: {{ item.quantity }}</span>
+            <li v-for="item in order.items" :key="item.productId">
+              Product ID: {{ item.productId }}, Size: {{ item.size }}, Quantity: {{ item.quantity }}
             </li>
           </ul>
         </div>
 
-        <!-- Status update en delete knoppen -->
-        <div class="flex space-x-2">
+        <!-- Admin Actions -->
+        <div v-if="isAdmin" class="flex space-x-2">
           <button
             v-if="order.status === 'Pending'"
             @click="updateOrderStatus(order._id, 'In Production')"
@@ -167,11 +196,9 @@ onMounted(fetchOrders);
 </template>
 
 <style scoped>
-/* Basisstijl voor knoppen */
 button {
   font-weight: bold;
 }
-
 .text-yellow-500 {
   color: #facc15;
 }
