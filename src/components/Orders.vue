@@ -62,17 +62,6 @@ const setupSocketListeners = () => {
   });
 };
 
-// Mount and unmount
-onMounted(() => {
-  checkAdminStatus();
-  fetchOrders();
-  setupSocketListeners();
-});
-
-onUnmounted(() => {
-  socket.disconnect();
-});
-
 // Update order status
 const updateOrderStatus = async (orderId, newStatus) => {
   const token = localStorage.getItem('token');
@@ -84,7 +73,7 @@ const updateOrderStatus = async (orderId, newStatus) => {
   try {
     const response = await axios.patch(
       `https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${orderId}`,
-      { status: newStatus },
+      { status: newStatus }, // Zorg ervoor dat newStatus één van de toegestane waarden is
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -93,9 +82,11 @@ const updateOrderStatus = async (orderId, newStatus) => {
     );
 
     if (response.data.status === 'success') {
-      socket.emit('orderUpdated', response.data.data); // Trigger socket update
+      const index = orders.value.findIndex((order) => order._id === orderId);
+      if (index !== -1) orders.value[index].status = newStatus;
       alert('Order status updated successfully!');
     } else {
+      console.error('Error from backend:', response.data.message);
       alert('Failed to update order status.');
     }
   } catch (err) {
@@ -133,6 +124,17 @@ const deleteOrder = async (orderId) => {
     alert('Failed to delete order. Please try again.');
   }
 };
+
+// Mount and unmount
+onMounted(() => {
+  checkAdminStatus();
+  fetchOrders();
+  setupSocketListeners();
+});
+
+onUnmounted(() => {
+  socket.disconnect();
+});
 </script>
 
 <template>
@@ -153,7 +155,7 @@ const deleteOrder = async (orderId) => {
       <li
         v-for="order in orders"
         :key="order._id"
-        class="border p-4 rounded shadow flex justify-between items-center"
+        class="border p-4 rounded shadow flex flex-col space-y-4"
       >
         <div>
           <p><strong>Order ID:</strong> {{ order._id }}</p>
@@ -162,8 +164,9 @@ const deleteOrder = async (orderId) => {
             <span
               :class="{
                 'text-yellow-500': order.status === 'Pending',
-                'text-blue-500': order.status === 'In Production',
-                'text-green-500': order.status === 'Shipped',
+                'text-blue-500': order.status === 'In productie',
+                'text-green-500': order.status === 'Verzonden',
+                'text-red-500': order.status === 'Geannuleerd'
               }"
             >
               {{ order.status }}
@@ -176,23 +179,30 @@ const deleteOrder = async (orderId) => {
 
         <!-- Admin Actions -->
         <div v-if="isAdmin" class="flex space-x-2">
-          <button
-            v-if="order.status === 'Pending'"
-            @click="updateOrderStatus(order._id, 'In Production')"
-            class="bg-blue-500 text-white px-2 py-1 rounded"
-          >
-            In Production
-          </button>
-          <button
-            v-if="order.status === 'In Production'"
-            @click="updateOrderStatus(order._id, 'Shipped')"
-            class="bg-green-500 text-white px-2 py-1 rounded"
-          >
-            Shipped
-          </button>
+  <button
+    v-if="order.status === 'Pending'"
+    @click="updateOrderStatus(order._id, 'In productie')"
+    class="bg-blue-500 text-white px-2 py-1 rounded"
+  >
+    In productie
+  </button>
+  <button
+    v-if="order.status === 'In productie'"
+    @click="updateOrderStatus(order._id, 'Verzonden')"
+    class="bg-green-500 text-white px-2 py-1 rounded"
+  >
+    Verzonden
+  </button>
+  <button
+    v-if="order.status !== 'Geannuleerd'"
+    @click="updateOrderStatus(order._id, 'Geannuleerd')"
+    class="bg-red-500 text-white px-2 py-1 rounded"
+  >
+    Geannuleerd
+  </button>
           <button
             @click="deleteOrder(order._id)"
-            class="bg-red-500 text-white px-2 py-1 rounded"
+            class="bg-gray-500 text-white px-2 py-1 rounded"
           >
             Delete
           </button>
@@ -215,4 +225,8 @@ button {
 .text-green-500 {
   color: #22c55e;
 }
+.text-red-500 {
+  color: #ef4444;
+}
+
 </style>
