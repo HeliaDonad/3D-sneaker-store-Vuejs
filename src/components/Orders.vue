@@ -1,13 +1,15 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import axios from 'axios';
 import { io } from 'socket.io-client';
+import axios from 'axios';
+import { useRouter } from 'vue-router';
 
 const orders = ref([]); // Orders list
 const error = ref(''); // Error message
 const isAdmin = ref(false); // Check if user is admin
 const totalOrders = ref(0); // Total orders counter
 const socket = io('http://localhost:3000'); // Connect to Socket.IO server
+const router = useRouter(); // Vue Router for navigation
 
 // Check if user is admin
 const checkAdminStatus = async () => {
@@ -59,6 +61,17 @@ const setupSocketListeners = () => {
     }
   });
 };
+
+// Mount and unmount
+onMounted(() => {
+  checkAdminStatus();
+  fetchOrders();
+  setupSocketListeners();
+});
+
+onUnmounted(() => {
+  socket.disconnect();
+});
 
 // Update order status
 const updateOrderStatus = async (orderId, newStatus) => {
@@ -120,17 +133,6 @@ const deleteOrder = async (orderId) => {
     alert('Failed to delete order. Please try again.');
   }
 };
-
-// Mount and unmount
-onMounted(() => {
-  checkAdminStatus();
-  fetchOrders();
-  setupSocketListeners();
-});
-
-onUnmounted(() => {
-  socket.disconnect();
-});
 </script>
 
 <template>
@@ -148,7 +150,11 @@ onUnmounted(() => {
 
     <!-- Orders list -->
     <ul v-else class="space-y-4">
-      <li v-for="order in orders" :key="order._id" class="border p-4 rounded shadow flex flex-col space-y-4">
+      <li
+        v-for="order in orders"
+        :key="order._id"
+        class="border p-4 rounded shadow flex justify-between items-center"
+      >
         <div>
           <p><strong>Order ID:</strong> {{ order._id }}</p>
           <p>
@@ -163,23 +169,9 @@ onUnmounted(() => {
               {{ order.status }}
             </span>
           </p>
-        </div>
-
-        <!-- Contact Info -->
-        <div>
-          <h3 class="text-lg font-semibold">Contact Info</h3>
-          <p><strong>Name:</strong> {{ order.contactInfo?.name }}</p>
-          <p><strong>Email:</strong> {{ order.contactInfo?.email }}</p>
-        </div>
-
-        <!-- Items -->
-        <div>
-          <h3 class="text-lg font-semibold">Items</h3>
-          <ul>
-            <li v-for="item in order.items" :key="item.productId">
-              Product ID: {{ item.productId }}, Size: {{ item.size }}, Quantity: {{ item.quantity }}
-            </li>
-          </ul>
+          <router-link :to="`/orders/${order._id}`" class="text-blue-500 underline">
+            View Details
+          </router-link>
         </div>
 
         <!-- Admin Actions -->

@@ -1,43 +1,64 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import axios from 'axios';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
 const order = ref(null);
+const error = ref('');
 
-const loadOrderDetails = () => {
-  const orders = JSON.parse(localStorage.getItem('orders')) || [];
-  const orderId = route.params.id;
-  order.value = orders.find((o) => o.id === orderId);
+// Haal orderdetails op
+const fetchOrderDetails = async (orderId) => {
+  const token = localStorage.getItem('token');
+  try {
+    const response = await axios.get(
+      `https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${orderId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    order.value = response.data.data;
+  } catch (err) {
+    console.error('Error fetching order details:', err);
+    error.value = 'Failed to fetch order details. Please try again later.';
+  }
 };
 
+// Bij component mount
 onMounted(() => {
-  loadOrderDetails();
+  fetchOrderDetails(route.params.id);
 });
 </script>
 
 <template>
   <div class="p-6">
     <h1 class="text-2xl font-bold mb-4">Order Details</h1>
-    <div v-if="!order" class="text-gray-500">
-      Order not found.
-    </div>
-    <div v-else>
-      <p><strong>Order ID:</strong> {{ order.id }}</p>
-      <ul>
-        <li
-          v-for="(item, index) in order.items"
-          :key="index"
-          class="border p-2 my-2 rounded"
-        >
-          <p><strong>Size:</strong> {{ item.size }}</p>
-          <p><strong>Quantity:</strong> {{ item.quantity }}</p>
-        </li>
-      </ul>
+    <div v-if="error" class="text-red-500 mb-4">{{ error }}</div>
+
+    <div v-if="order" class="space-y-4">
+      <div>
+        <p><strong>Order ID:</strong> {{ order._id }}</p>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold">Contact Info</h3>
+        <p><strong>Name:</strong> {{ order.contactInfo?.name }}</p>
+        <p><strong>Email:</strong> {{ order.contactInfo?.email }}</p>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold">Items</h3>
+        <ul>
+          <li v-for="item in order.items" :key="item.productId">
+            <p><strong>Product ID:</strong> {{ item.productId }}</p>
+            <p><strong>Size:</strong> {{ item.size }}</p>
+            <p><strong>Quantity:</strong> {{ item.quantity }}</p>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Voeg extra stijlen toe indien nodig */
 </style>
