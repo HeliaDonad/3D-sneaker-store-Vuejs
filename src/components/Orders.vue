@@ -9,7 +9,6 @@ const error = ref(''); // Error message
 const isAdmin = ref(false); // Check if user is admin
 const totalOrders = ref(0); // Total orders counter
 const isProcessing = ref(false); // Loading indicator for buttons
-const socket = io('https://threed-sneaker-store-seda-ezzat-helia.onrender.com');
 const router = useRouter(); // Vue Router for navigation
 
 // Check if user is admin
@@ -25,6 +24,18 @@ const checkAdminStatus = async () => {
   }
 };
 
+const socket = io('https://threed-sneaker-store-seda-ezzat-helia.onrender.com', {
+  transports: ['websocket', 'polling'], // Gebruik websocket en polling
+  withCredentials: true, // Sta cookies/auth headers toe
+});
+
+socket.on('connect', () => {
+  console.log('Verbonden met WebSocket:', socket.id);
+});
+
+socket.on('disconnect', () => {
+  console.log('Verbinding verbroken');
+});
 // Fetch orders from backend
 const fetchOrders = async () => {
   const token = localStorage.getItem('token');
