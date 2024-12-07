@@ -126,6 +126,9 @@ const createOrder = async () => {
 onMounted(() => {
   checkLoginStatus();
   initializeCart();
+
+  const defaultSize = '36'; // Eerste maat in de lijst
+  selectedSize.value = defaultSize;
 });
 
 onMounted(() => {
@@ -192,7 +195,7 @@ onMounted(() => {
       <main class="container flex-grow p-4 bg-white shadow-inner">
         <div class="flex flex-wrap lg:flex-nowrap">
           <!-- Product Image -->
-          <div class="threejs-container flex-none w-full lg:w-3/4 mb-2 relative z-10" style="height: calc(100vh - 170px);">
+          <div class="threejs-container flex-none w-full lg:w-3/4 mb-2 relative z-10" style="height: calc(100vh - 170px); margin-bottom: 2rem;">
             <iframe
               src="https://threejs-ch7-configurator.vercel.app/"
               class="w-full h-full border-none"

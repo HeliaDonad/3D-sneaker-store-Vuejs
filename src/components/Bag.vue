@@ -125,13 +125,17 @@ const updateOrderStatus = async (orderId, newStatus) => {
 
 // Initialiseer de winkelwagen bij laden van de component
 initializeCart();
+
+const goBack = () => {
+  router.back();
+};
 </script>
 
 <template>
  <div class="min-h-screen bg-gray-100">
     <header class="nav bg-gray-500 text-white p-4">
       <img src="../assets/images/SWEAR_Logo_black.avif" alt="" class="headerLogo">
-      <h1 class="navItem text-2xl font-bold">GO BACK</h1>
+      <h1 class="navItem text-2xl font-bold cursor-pointer" @click="goBack">GO BACK</h1>
     </header>
     <div class="p-6">
       <h2 class="text-lg font-semibold">YOUR BAG</h2>
