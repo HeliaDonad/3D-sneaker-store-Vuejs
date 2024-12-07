@@ -9,7 +9,7 @@ const error = ref(''); // Error message
 const isAdmin = ref(false); // Check if user is admin
 const totalOrders = ref(0); // Total orders counter
 const isProcessing = ref(false); // Loading indicator for buttons
-const socket = io('http://localhost:3000'); // Connect to Socket.IO server
+const socket = io('https://threed-sneaker-store-seda-ezzat-helia.onrender.com');
 const router = useRouter(); // Vue Router for navigation
 
 // Check if user is admin
