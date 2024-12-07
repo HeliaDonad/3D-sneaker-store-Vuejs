@@ -127,6 +127,16 @@ onMounted(() => {
   checkLoginStatus();
   initializeCart();
 });
+
+onMounted(() => {
+  window.addEventListener('message', (event) => {
+    if (event.origin === 'https://threejs-ch7-configurator.vercel.app') {
+      const data = event.data; // Ontvang configurator gegevens
+      console.log('Gegevens ontvangen van configurator:', data);
+    }
+  });
+});
+
 </script>
 
 <template>
@@ -182,11 +192,14 @@ onMounted(() => {
       <main class="container flex-grow p-4 bg-white shadow-inner">
         <div class="flex flex-wrap lg:flex-nowrap">
           <!-- Product Image -->
-          <div class="flex-none w-full lg:w-3/4 mb-4 relative z-10">
-            <div class="w-full h-96 bg-gray-200">
-              <img src="#" alt="Product" class="absolute inset-0 w-full h-full object-cover" />
+            <div class="threejs-container flex-none w-full lg:w-3/4 mb-4 relative z-10">
+              <iframe
+                src="https://threejs-ch7-configurator.vercel.app/"
+                frameborder="0"
+                class="w-full h-96"
+                allowfullscreen
+              ></iframe>
             </div>
-          </div>
 
           <!-- Product Configuration Form -->
           <form @submit.prevent="addToCart" class="flex-auto pl-6">
