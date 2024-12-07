@@ -130,9 +130,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-100">
+  <div class="min-h-screen bg-gray-100 footer">
     <header class="bg-gray-500 text-white p-4 flex justify-between items-center">
-      <h1 class="text-2xl font-bold">SWEAR</h1>
+      <img src="../assets/images/SWEAR_Logo_black.avif" alt="" class="headerLogo">
       <nav>
         <ul class="flex space-x-4">
           <li>
@@ -141,11 +141,11 @@ onMounted(() => {
               @click="() => router.push('/login')"
               class="hover:underline"
             >
-              Bag
+              BAG
             </button>
             <div v-else>
               <button @click="() => router.push('/bag')" class="hover:underline">
-                Bag
+                YOUR BAG
               </button>
             </div>
           </li>
@@ -155,11 +155,11 @@ onMounted(() => {
               @click="() => router.push('/login')"
               class="hover:underline"
             >
-              Account
+              ACCOUNT
             </button>
             <div v-else>
               <button @click="() => router.push('/account')" class="hover:underline">
-                Account
+                ACCOUNT
               </button>
             </div>
           </li>
@@ -172,14 +172,14 @@ onMounted(() => {
       {{ notificationMessage }}
     </div>
 
-    <main class="p-6">
-      <h2 v-if="!isLoggedIn">Welcome to the 3D Sneaker Store! Please log in to personalize your experience.</h2>
-      <h2 v-else>Welcome back! Manage your account and explore your dashboard.</h2>
+    <main class="p-6 header">
+      <h2 v-if="!isLoggedIn">WELCOME. DESIGN, CONFIGURATE, CREATE.</h2>
+      <h2 v-else>WELCOME BACK. DESIGN, CONFIGURATE, CREATE.</h2>
     </main>
 
     <!-- Main Content -->
     <div class="flex flex-grow">
-      <main class="flex-grow p-4 bg-white shadow-inner">
+      <main class="container flex-grow p-4 bg-white shadow-inner">
         <div class="flex flex-wrap lg:flex-nowrap">
           <!-- Product Image -->
           <div class="flex-none w-full lg:w-3/4 mb-4 relative z-10">
@@ -191,9 +191,9 @@ onMounted(() => {
           <!-- Product Configuration Form -->
           <form @submit.prevent="addToCart" class="flex-auto pl-6">
             <div class="relative flex flex-wrap items-baseline pb-6">
-              <h1 class="relative w-full flex-none mb-2 text-2xl font-semibold text-gray-800">Create your own Sneaker</h1>
-              <div class="relative text-lg text-gray-500">€89.00</div>
-              <div class="relative uppercase text-gray-400 ml-3">In stock</div>
+              <h1 class="shoeName relative w-full flex-none mb-2 text-2xl font-semibold text-gray-800">SHOE MODEL NAME</h1>
+              <div class="price relative text-lg text-gray-500">€89.00</div>
+              <div class="instock relative uppercase text-gray-400 ml-3">In stock</div>
             </div>
 
             <!-- Size Options -->
@@ -208,17 +208,17 @@ onMounted(() => {
 
             <!-- Quantity Selector -->
             <div class="my-4">
-              <label class="block text-sm font-medium text-gray-800 mb-2">Quantity</label>
+              <label class="block text-sm font-medium text-gray-800 mb-2">AMOUNT</label>
               <div class="flex items-center space-x-2">
-                <button type="button" @click="quantity > 1 ? quantity-- : quantity" class="text-gray-500 border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-200">-</button>
+                <button type="button" @click="quantity > 1 ? quantity-- : quantity" class="minusBtn text-gray-500 border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-200">-</button>
                 <input type="number" v-model="quantity" min="1" class="w-12 text-center border border-gray-300 py-1 rounded-md" />
-                <button type="button" @click="quantity++" class="text-gray-500 border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-200">+</button>
+                <button type="button" @click="quantity++" class="plusBtn text-gray-500 border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-200">+</button>
               </div>
             </div>
 
             <!-- Add to Cart Button -->
             <div class="my-4">
-              <button type="submit" class="w-full py-2 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-700">Add to Cart</button>
+              <button type="submit" class="w-full py-2 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-700 orderBtn">ADD TO BAG</button>
             </div>
           </form>
         </div>
@@ -233,4 +233,71 @@ input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+body {
+  font-family: Helvetica, sans-serif;
+  background-color: red;
+}
+
+header {
+  background-color: #64f243;
+  color: #000000;
+  font-family: Helvetica;
+  font-weight: bold;
+  height: 60px;
+}
+.headerLogo {
+  height: 25px;
+}
+
+.instock  {
+  color: #64f243;
+  font-weight: bold;
+}
+
+.price {
+  font-weight: bold;
+  color: #000000;
+  font-size: 1.5em;
+}
+
+.container {
+  border-top: #0000003b 1px solid;
+  border-bottom: #0000003b 1px solid;
+}
+
+.header {
+  background-color: #FFF;
+}
+
+.footer {
+  background-color: #FFF;
+}
+
+.orderBtn {
+  background-color: #64f243;
+  color: #000000;
+}
+
+.orderBtn:hover {
+  background-color: #63f243aa;
+  color: #000000;
+}
+
+.header h2 {
+  color: #000000;
+  font-weight: bold;
+  font-size: 1em;
+}
+
+.minusBtn, .plusBtn {
+  color: #64f243;
+  font-weight: bold;
+}
+
+.shoeName {
+  font-weight: bold;
+  color: #000000;
+}
+
 </style>
