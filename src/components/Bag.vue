@@ -1,4 +1,5 @@
 <script setup>
+import axios from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -95,31 +96,19 @@ const submitGuestDetails = async () => {
 // Werk de status van een bestelling bij via PATCH
 const updateOrderStatus = async (orderId, newStatus) => {
   try {
-    const response = await fetch(`https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${orderId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ status: newStatus }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Error updating order status:', errorText);
-      alert(`Failed to update order status: ${errorText}`);
-      return;
-    }
-
-    const result = await response.json();
-    if (result.status === 'success') {
-      alert('Order status updated successfully!');
-    } else {
-      console.error('Unexpected API response:', result);
-      alert('Failed to update order status: ' + result.message || 'Unexpected error.');
-    }
-  } catch (error) {
-    console.error('Error updating order status:', error);
-    alert('Error updating order status: ' + error.message);
+    const response = await axios.patch(
+      `https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${orderId}`,
+      { status: newStatus },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`, // Zorg dat je token correct is
+        },
+      }
+    );
+    console.log('Order bijgewerkt:', response.data);
+  } catch (err) {
+    console.error('Error updating order status:', err);
   }
 };
 

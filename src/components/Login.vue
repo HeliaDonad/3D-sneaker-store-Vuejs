@@ -13,14 +13,26 @@ export default {
     const login = async () => {
   try {
     console.log('Verstuurde gegevens:', { email: email.value, password: password.value });
+
     const response = await axios.post(
       'https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/login',
       { email: email.value, password: password.value }
     );
+
     console.log('API-respons:', response.data);
-    const { token, redirectTo } = response.data.data;
-    localStorage.setItem('token', token);
-    router.push(redirectTo);
+
+    const { token } = response.data.data;
+    localStorage.setItem('token', token); // Token opslaan in localStorage
+
+    // Decode de JWT-token om de rol te controleren
+    const decodedToken = JSON.parse(atob(token.split('.')[1])); // Decode de payload
+    const isAdmin = decodedToken.isAdmin; // Controleer of de gebruiker een admin is
+
+    if (isAdmin) {
+      router.push('/AdminDashboard'); // Admin wordt doorgestuurd naar adminDashboard
+    } else {
+      router.push('/Dashboard'); // Normale gebruiker wordt doorgestuurd naar dashboard
+    }
   } catch (err) {
     console.error('Login fout:', err.response?.data || err.message);
     error.value = err.response?.data?.message || 'Login failed. Please try again.';

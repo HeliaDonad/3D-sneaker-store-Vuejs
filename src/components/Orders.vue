@@ -40,40 +40,39 @@ socket.on('disconnect', () => {
 const fetchOrders = async () => {
   const token = localStorage.getItem('token');
   if (!token) {
-    error.value = 'You are not logged in. Please log in to view orders.';
+    console.error('No token found. User might not be logged in.');
+    error.value = 'You need to log in to access orders.';
     return;
   }
 
   try {
-    const response = await axios.get(
-      'https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.get('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders', {
+      headers: {
+        Authorization: `Bearer ${token}`, // Zorg ervoor dat het token hier wordt meegestuurd
+      },
+    });
     orders.value = response.data.data;
-    totalOrders.value = orders.value.length;
+    totalOrders.value = orders.value.length; // Update totalOrders
   } catch (err) {
     console.error('Error fetching orders:', err);
-    error.value = 'Failed to fetch orders. Please try again later.';
+    error.value = err.response?.data?.message || 'Failed to fetch orders.';
   }
 };
+
+
 
 // Setup socket listeners for live updates
 const setupSocketListeners = () => {
   socket.on('orderUpdate', (update) => {
     if (update.type === 'new') {
       orders.value.push(update.data);
-      totalOrders.value++;
     } else if (update.type === 'update') {
       const index = orders.value.findIndex((order) => order._id === update.data._id);
       if (index !== -1) orders.value[index] = update.data;
     } else if (update.type === 'delete') {
       orders.value = orders.value.filter((order) => order._id !== update.data);
-      totalOrders.value--;
     }
+    totalOrders.value = orders.value.length; // Update totalOrders na elke wijziging
   });
 };
 
