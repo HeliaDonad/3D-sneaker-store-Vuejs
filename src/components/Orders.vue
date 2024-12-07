@@ -8,6 +8,7 @@ const orders = ref([]); // Orders list
 const error = ref(''); // Error message
 const isAdmin = ref(false); // Check if user is admin
 const totalOrders = ref(0); // Total orders counter
+const isProcessing = ref(false); // Loading indicator for buttons
 const socket = io('http://localhost:3000'); // Connect to Socket.IO server
 const router = useRouter(); // Vue Router for navigation
 
@@ -33,11 +34,14 @@ const fetchOrders = async () => {
   }
 
   try {
-    const response = await axios.get('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await axios.get(
+      'https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     orders.value = response.data.data;
     totalOrders.value = orders.value.length;
   } catch (err) {
@@ -70,10 +74,11 @@ const updateOrderStatus = async (orderId, newStatus) => {
     return;
   }
 
+  isProcessing.value = true;
   try {
     const response = await axios.patch(
       `https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${orderId}`,
-      { status: newStatus }, // Zorg ervoor dat newStatus één van de toegestane waarden is
+      { status: newStatus },
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -86,12 +91,13 @@ const updateOrderStatus = async (orderId, newStatus) => {
       if (index !== -1) orders.value[index].status = newStatus;
       alert('Order status updated successfully!');
     } else {
-      console.error('Error from backend:', response.data.message);
-      alert('Failed to update order status.');
+      alert(`Failed to update order status: ${response.data.message}`);
     }
   } catch (err) {
     console.error('Error updating order status:', err);
-    alert('Failed to update order status.');
+    alert('Failed to update order status. Please try again.');
+  } finally {
+    isProcessing.value = false;
   }
 };
 
@@ -103,6 +109,9 @@ const deleteOrder = async (orderId) => {
     return;
   }
 
+  if (!confirm('Are you sure you want to delete this order?')) return;
+
+  isProcessing.value = true;
   try {
     const response = await axios.delete(
       `https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${orderId}`,
@@ -114,7 +123,8 @@ const deleteOrder = async (orderId) => {
     );
 
     if (response.data.status === 'success') {
-      socket.emit('orderDeleted', orderId); // Trigger socket delete
+      orders.value = orders.value.filter((order) => order._id !== orderId);
+      totalOrders.value--;
       alert('Order deleted successfully!');
     } else {
       alert(`Failed to delete order: ${response.data.message}`);
@@ -122,6 +132,8 @@ const deleteOrder = async (orderId) => {
   } catch (err) {
     console.error('Error deleting order:', err);
     alert('Failed to delete order. Please try again.');
+  } finally {
+    isProcessing.value = false;
   }
 };
 
