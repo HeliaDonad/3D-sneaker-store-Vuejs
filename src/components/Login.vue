@@ -11,18 +11,21 @@ export default {
     const router = useRouter()
 
     const login = async () => {
-      try {
-        const response = await axios.post('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/login', {
-          email: email.value,
-          password: password.value,
-        });
-        const { token, redirectTo } = response.data.data;
-        localStorage.setItem('token', token); // Sla token op in localStorage
-        router.push(redirectTo); // Redirect naar de juiste pagina
-      } catch (err) {
-        error.value = err.response?.data?.message || 'Login failed. Please try again.';
-      }
-    }
+  try {
+    console.log('Verstuurde gegevens:', { email: email.value, password: password.value });
+    const response = await axios.post(
+      'https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/login',
+      { email: email.value, password: password.value }
+    );
+    console.log('API-respons:', response.data);
+    const { token, redirectTo } = response.data.data;
+    localStorage.setItem('token', token);
+    router.push(redirectTo);
+  } catch (err) {
+    console.error('Login fout:', err.response?.data || err.message);
+    error.value = err.response?.data?.message || 'Login failed. Please try again.';
+  }
+};
 
     return {
       email,
