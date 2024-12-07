@@ -15,10 +15,11 @@ const fetchOrderDetails = async (orderId) => {
       `https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${orderId}`,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // Zorg dat het token wordt meegegeven
         },
       }
     );
+
     order.value = response.data.data;
   } catch (err) {
     console.error('Error fetching order details:', err);
