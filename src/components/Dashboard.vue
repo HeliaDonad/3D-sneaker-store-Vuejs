@@ -192,15 +192,14 @@ onMounted(() => {
       <main class="container flex-grow p-4 bg-white shadow-inner">
         <div class="flex flex-wrap lg:flex-nowrap">
           <!-- Product Image -->
-            <div class="threejs-container flex-none w-full lg:w-3/4 mb-4 relative z-10">
-              <iframe
-                src="https://threejs-ch7-configurator.vercel.app/"
-                frameborder="0"
-                class="w-full h-96"
-                allowfullscreen
-              ></iframe>
-            </div>
-
+          <div class="threejs-container flex-none w-full lg:w-3/4 mb-2 relative z-10" style="height: calc(100vh - 170px);">
+            <iframe
+              src="https://threejs-ch7-configurator.vercel.app/"
+              class="w-full h-full border-none"
+              allowfullscreen
+            ></iframe>
+          </div>
+          
           <!-- Product Configuration Form -->
           <form @submit.prevent="addToCart" class="flex-auto pl-6">
             <div class="relative flex flex-wrap items-baseline pb-6">
