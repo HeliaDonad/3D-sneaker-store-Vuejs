@@ -29,10 +29,11 @@ export default {
     const isAdmin = decodedToken.isAdmin; // Controleer of de gebruiker een admin is
 
     if (isAdmin) {
-      router.push('/AdminDashboard'); // Admin wordt doorgestuurd naar adminDashboard
-    } else {
-      router.push('/Dashboard'); // Normale gebruiker wordt doorgestuurd naar dashboard
-    }
+  router.push('/AdminDashboard'); // Correct: absoluut pad
+} else {
+  router.push('/Dashboard'); // Correct: absoluut pad
+}
+
   } catch (err) {
     console.error('Login fout:', err.response?.data || err.message);
     error.value = err.response?.data?.message || 'Login failed. Please try again.';

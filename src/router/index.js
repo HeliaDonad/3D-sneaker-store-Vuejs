@@ -18,7 +18,7 @@ const routes = [
   { path: '/account', component: Account },
   { path: '/orders', component: Orders },
   { path: '/orders/:id', component: Order },
-  { path: '/admin', component: AdminDashboard },
+  { path: '/AdminDashboard', component: AdminDashboard },
   { path: '/', redirect: '/dashboard' } // Redirect root to dashboard
 ];
 
