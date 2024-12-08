@@ -36,6 +36,7 @@ socket.on('connect', () => {
 socket.on('disconnect', () => {
   console.log('Verbinding verbroken');
 });
+
 // Fetch orders from backend
 const fetchOrders = async () => {
   const token = localStorage.getItem('token');
@@ -58,8 +59,6 @@ const fetchOrders = async () => {
     error.value = err.response?.data?.message || 'Failed to fetch orders.';
   }
 };
-
-
 
 // Setup socket listeners for live updates
 const setupSocketListeners = () => {
