@@ -6,6 +6,7 @@ const router = useRouter();
 const isLoggedIn = ref(false);
 const cart = ref([]); // Local cart
 const selectedSize = ref(''); // Default size
+const selectedColor = ref(''); // Default color
 const quantity = ref(1); // Default quantity
 
 const showNotification = ref(false);
@@ -45,6 +46,7 @@ const addToCart = () => {
   const product = {
     productId: validProductId, // Use the validated productId here
     size: selectedSize.value,
+    color: selectedColor.value,
     quantity: quantity.value,
   };
 

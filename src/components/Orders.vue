@@ -36,9 +36,8 @@ socket.on('connect', () => {
 socket.on('disconnect', () => {
   console.log('Verbinding verbroken');
 });
-
 // Fetch orders from backend
-const fetchOrders = async (fetchAll = false) => {
+const fetchOrders = async () => {
   const token = localStorage.getItem('token');
   if (!token) {
     console.error('No token found. User might not be logged in.');
@@ -47,17 +46,11 @@ const fetchOrders = async (fetchAll = false) => {
   }
 
   try {
-    const response = await axios.get(
-      `https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: {
-          all: fetchAll, // Haal alle orders op als fetchAll true is
-        },
-      }
-    );
+    const response = await axios.get('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders', {
+      headers: {
+        Authorization: `Bearer ${token}`, // Zorg ervoor dat het token hier wordt meegestuurd
+      },
+    });
     orders.value = response.data.data;
     totalOrders.value = orders.value.length; // Update totalOrders
   } catch (err) {
@@ -65,6 +58,8 @@ const fetchOrders = async (fetchAll = false) => {
     error.value = err.response?.data?.message || 'Failed to fetch orders.';
   }
 };
+
+
 
 // Setup socket listeners for live updates
 const setupSocketListeners = () => {
@@ -81,10 +76,81 @@ const setupSocketListeners = () => {
   });
 };
 
+// Update order status
+const updateOrderStatus = async (orderId, newStatus) => {
+  const token = localStorage.getItem('token');
+  if (!isAdmin.value) {
+    alert('Only admins can update order status.');
+    return;
+  }
+
+  isProcessing.value = true;
+  try {
+    const response = await axios.patch(
+      `https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${orderId}`,
+      { status: newStatus },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.data.status === 'success') {
+      const index = orders.value.findIndex((order) => order._id === orderId);
+      if (index !== -1) orders.value[index].status = newStatus;
+      alert('Order status updated successfully!');
+    } else {
+      alert(`Failed to update order status: ${response.data.message}`);
+    }
+  } catch (err) {
+    console.error('Error updating order status:', err);
+    alert('Failed to update order status. Please try again.');
+  } finally {
+    isProcessing.value = false;
+  }
+};
+
+// Delete order
+const deleteOrder = async (orderId) => {
+  const token = localStorage.getItem('token');
+  if (!isAdmin.value) {
+    alert('Only admins can delete orders.');
+    return;
+  }
+
+  if (!confirm('Are you sure you want to delete this order?')) return;
+
+  isProcessing.value = true;
+  try {
+    const response = await axios.delete(
+      `https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders/${orderId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.data.status === 'success') {
+      orders.value = orders.value.filter((order) => order._id !== orderId);
+      totalOrders.value--;
+      alert('Order deleted successfully!');
+    } else {
+      alert(`Failed to delete order: ${response.data.message}`);
+    }
+  } catch (err) {
+    console.error('Error deleting order:', err);
+    alert('Failed to delete order. Please try again.');
+  } finally {
+    isProcessing.value = false;
+  }
+};
+
 // Mount and unmount
 onMounted(() => {
   checkAdminStatus();
-  fetchOrders(true); // Haal standaard alle orders op
+  fetchOrders();
   setupSocketListeners();
 });
 
