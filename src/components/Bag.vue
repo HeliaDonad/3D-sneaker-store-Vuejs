@@ -121,7 +121,7 @@ const goBack = () => {
 </script>
 
 <template>
- <div class="min-h-screen bg-gray-100">
+  <div class="min-h-screen bg-gray-100">
     <header class="nav bg-gray-500 text-white p-4">
       <img src="../assets/images/SWEAR_Logo_black.avif" alt="" class="headerLogo">
       <h1 class="navItem text-2xl font-bold cursor-pointer" @click="goBack">GO BACK</h1>
@@ -150,7 +150,7 @@ const goBack = () => {
             <button @click="item.quantity++" class="bg-gray-200 p-1">+</button>
           </div>
 
-          <button @click="removeCartItem(index)" class="bg-red-500 text-white p-1 rounded-md">Remove</button>
+          <button @click="removeCartItem(index)" class="bg-red-500 text-white py-2 px-2 rounded-md">Remove</button>
         </li>
       </ul>
       <button @click="placeOrder" class="orderBtn w-full py-2 mt-4 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-700">
@@ -159,19 +159,21 @@ const goBack = () => {
     </div>
 
     <!-- Popup voor gebruikersgegevens -->
-    <div v-if="showPopup" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
-      <div class="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 class="text-xl font-bold mb-4">Enter Your Details</h2>
+    <div v-if="showPopup" class="fixed inset-0 flex items-start justify-center z-50 py-10">
+      <div class="popup bg-white p-6 rounded-lg shadow-lg w-96">
+        <h2 class="text-xl font-bold mb-4 text-gray-900">Enter Your Details</h2>
         <form @submit.prevent="submitGuestDetails">
           <div class="mb-4">
-            <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-            <input v-model="guestName" id="name" type="text" required class="w-full border rounded-lg px-3 py-2" />
+            <label for="name" class="block text-sm font-medium text-gray-900">Name</label>
+            <input v-model="guestName" id="name" type="text" required class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring focus:ring-green-300" />
           </div>
           <div class="mb-4">
-            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-            <input v-model="guestEmail" id="email" type="email" required class="w-full border rounded-lg px-3 py-2" />
+            <label for="email" class="block text-sm font-medium text-gray-900">Email</label>
+            <input v-model="guestEmail" id="email" type="email" required class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring focus:ring-green-300" />
           </div>
-          <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg">Submit</button>
+          <button type="submit" class="w-full popup-btn bg-green-400 text-black font-bold py-2 rounded-lg hover:bg-green-500">
+            Submit
+          </button>
         </form>
       </div>
     </div>
@@ -179,7 +181,7 @@ const goBack = () => {
 </template>
 
 <style scoped>
-/* Add your custom styles if needed */
+/* Globale stijlen voor consistentie */
 .nav {
   background-color: #64f243;
   color: #000000;
@@ -211,5 +213,21 @@ const goBack = () => {
 .navItem:hover {
   cursor: pointer;
   text-decoration: underline;
+}
+
+/* Stijlen voor de popup */
+.popup {
+  background-color: #f3f3f3; /* Lichte achtergrond */
+  border: 2px solid #64f243;
+  color: #000;
+}
+
+.popup-btn {
+  background-color: #64f243;
+  color: #000000;
+}
+
+.popup-btn:hover {
+  background-color: #63f243aa;
 }
 </style>
