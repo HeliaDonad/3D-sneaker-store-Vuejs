@@ -40,7 +40,6 @@ socket.on('disconnect', () => {
 const fetchOrders = async () => {
   const token = localStorage.getItem('token');
   if (!token) {
-    console.error('No token found. User might not be logged in.');
     error.value = 'You need to log in to access orders.';
     return;
   }
@@ -48,9 +47,10 @@ const fetchOrders = async () => {
   try {
     const response = await axios.get('https://threed-sneaker-store-seda-ezzat-helia.onrender.com/api/v1/orders', {
       headers: {
-        Authorization: `Bearer ${token}`, // Zorg ervoor dat het token hier wordt meegestuurd
+        Authorization: `Bearer ${token}`,
       },
     });
+
     orders.value = response.data.data;
     totalOrders.value = orders.value.length; // Update totalOrders
   } catch (err) {
@@ -58,8 +58,6 @@ const fetchOrders = async () => {
     error.value = err.response?.data?.message || 'Failed to fetch orders.';
   }
 };
-
-
 
 // Setup socket listeners for live updates
 const setupSocketListeners = () => {
@@ -162,7 +160,7 @@ onUnmounted(() => {
 <template>
   <div class="p-6">
     <h1 v-if="isAdmin" class="text-2xl font-bold mb-4">All Orders (Admin) - Total: {{ totalOrders }}</h1>
-    <h1 v-else class="text-2xl font-bold mb-4">My Orders</h1>
+    <h1 v-else class="text-2xl font-bold mb-4">All Orders</h1>
 
     <!-- Error message -->
     <div v-if="error" class="text-red-500 mb-4">{{ error }}</div>
@@ -199,29 +197,29 @@ onUnmounted(() => {
           </router-link>
         </div>
 
-        <!-- Admin Actions -->
+        <!-- Admin-only actions -->
         <div v-if="isAdmin" class="flex space-x-2">
-  <button
-    v-if="order.status === 'Pending'"
-    @click="updateOrderStatus(order._id, 'In productie')"
-    class="bg-blue-500 text-white px-2 py-1 rounded"
-  >
-    In productie
-  </button>
-  <button
-    v-if="order.status === 'In productie'"
-    @click="updateOrderStatus(order._id, 'Verzonden')"
-    class="bg-green-500 text-white px-2 py-1 rounded"
-  >
-    Verzonden
-  </button>
-  <button
-    v-if="order.status !== 'Geannuleerd'"
-    @click="updateOrderStatus(order._id, 'Geannuleerd')"
-    class="bg-red-500 text-white px-2 py-1 rounded"
-  >
-    Geannuleerd
-  </button>
+          <button
+            v-if="order.status === 'Pending'"
+            @click="updateOrderStatus(order._id, 'In productie')"
+            class="bg-blue-500 text-white px-2 py-1 rounded"
+          >
+            In productie
+          </button>
+          <button
+            v-if="order.status === 'In productie'"
+            @click="updateOrderStatus(order._id, 'Verzonden')"
+            class="bg-green-500 text-white px-2 py-1 rounded"
+          >
+            Verzonden
+          </button>
+          <button
+            v-if="order.status !== 'Geannuleerd'"
+            @click="updateOrderStatus(order._id, 'Geannuleerd')"
+            class="bg-red-500 text-white px-2 py-1 rounded"
+          >
+            Geannuleerd
+          </button>
           <button
             @click="deleteOrder(order._id)"
             class="bg-gray-500 text-white px-2 py-1 rounded"
