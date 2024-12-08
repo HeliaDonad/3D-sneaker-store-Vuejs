@@ -93,7 +93,6 @@ onUnmounted(() => {
 });
 </script>
 
-
 <template>
   <div class="p-6">
     <h1 v-if="isAdmin" class="text-2xl font-bold mb-4">All Orders (Admin) - Total: {{ totalOrders }}</h1>
