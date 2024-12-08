@@ -6,9 +6,7 @@ const router = useRouter();
 const isLoggedIn = ref(false);
 const cart = ref([]); // Local cart
 const selectedSize = ref(''); // Default size
-const selectedColor = ref(''); // Default color
 const quantity = ref(1); // Default quantity
-const productId = ref(''); // Dynamisch productId
 
 const showNotification = ref(false);
 const notificationMessage = ref('');
@@ -32,9 +30,12 @@ const initializeCart = () => {
 
 // Add item to cart
 const addToCart = () => {
+  // Use a valid ObjectId for testing
+  const productId = '60d5ec49f1b2c12a4c8e4d5a'; // Replace this with the actual productId
+
   // Validate and convert productId to a format that your backend expects
   const isValidObjectId = (id) => /^[a-f\d]{24}$/i.test(id);
-  const validProductId = isValidObjectId(productId.value) ? productId.value : null;
+  const validProductId = isValidObjectId(productId) ? productId : null;
 
   if (!validProductId) {
     console.error('Invalid productId');
@@ -44,7 +45,6 @@ const addToCart = () => {
   const product = {
     productId: validProductId, // Use the validated productId here
     size: selectedSize.value,
-    color: selectedColor.value,
     quantity: quantity.value,
   };
 
@@ -65,6 +65,7 @@ const addToCart = () => {
     showNotification.value = false;
   }, 3000);
 };
+
 
 // Create an order
 const createOrder = async () => {
@@ -119,25 +120,24 @@ const createOrder = async () => {
   }
 };
 
-// Set dynamic productId
+// Initialize cart when the component is mounted
 onMounted(() => {
   checkLoginStatus();
   initializeCart();
 
   const defaultSize = '36'; // Eerste maat in de lijst
   selectedSize.value = defaultSize;
+});
 
-  // Dynamisch instellen van productId (voorbeeld voor configurator)
+onMounted(() => {
   window.addEventListener('message', (event) => {
     if (event.origin === 'https://threejs-ch7-configurator.vercel.app') {
       const data = event.data; // Ontvang configurator gegevens
-      if (data && data.productId) {
-        productId.value = data.productId; // Stel het productId dynamisch in
-        console.log('Product ID ontvangen van configurator:', productId.value);
-      }
+      console.log('Gegevens ontvangen van configurator:', data);
     }
   });
 });
+
 </script>
 
 <template>
