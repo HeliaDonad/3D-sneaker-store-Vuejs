@@ -130,13 +130,13 @@ const goBack = () => {
       <h2 class="text-lg font-semibold">YOUR BAG</h2>
       <ul>
         <li v-for="(item, index) in cart" :key="index" class="flex items-center justify-between py-2">
-          <div class="flex items-center">
-            <span class="mr-4">{{ item.quantity }}x</span>
-            <span>Size: {{ item.size }}</span>
+          <div class="flex items-center space-x-4">
+            <span> Size: {{ item.size }} </span>
+            <span class="mr-4"> Quantity: {{ item.quantity }}x</span>
           </div>
 
           <div class="flex flex-col space-y-2">
-            <label for="size">Size</label>
+            <label for="size"></label>
             <select v-model="item.size" @change="updateCartItem(index, item)" class="p-2 border rounded">
               <option v-for="size in ['36', '37', '38', '39', '40', '41', '42', '43', '44']" :key="size" :value="size">
                 {{ size }}
